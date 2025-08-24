@@ -1,28 +1,27 @@
-// src/components/ComplaintHeader.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import dayjs from 'dayjs';
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
-const ComplaintHeader = ({ complaint }) => {
-  return (
-    <div className="flex items-center gap-4">
-      <Link
-        to="/complaints"
-        className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-      >
-        <ArrowLeft className="w-5 h-5 text-gray-600" />
-      </Link>
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {complaint.title}
-        </h1>
-        <p className="text-gray-600">
-          Complaint #{complaint.id} • Filed {dayjs(complaint.createdAt).format('MMM D, YYYY')}
-        </p>
-      </div>
+const ComplaintHeader = ({ setShowCreateForm }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+  >
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800">Complaints</h1>
+      <p className="text-gray-500">Track and manage your issues with ease</p>
     </div>
-  );
-};
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => setShowCreateForm(true)}
+      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium shadow-lg hover:from-indigo-600 hover:to-purple-600 transition-all"
+    >
+      <Plus className="w-5 h-5" />
+      File Complaint
+    </motion.button>
+  </motion.div>
+);
 
 export default ComplaintHeader;

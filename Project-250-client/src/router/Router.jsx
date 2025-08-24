@@ -10,7 +10,9 @@ import FoodOrdersPage from "../pages/food/FoodOredersPage";
 import ProfilePage2 from "../pages/Profile/ProfilePage2";
 import FoodMenuPage from "../pages/food/FoodMenuPage";
 import SeatApplicationPage from "../pages/seat/SeatApplicationPage";
-import ComplaintsPage from "../pages/complains/ComplainPage";
+import ComplainPage from "../pages/complains/ComplainPage";
+import ComplaintDetailsPage from "../pages/complains/ComplaintDetailsPage";
+
 
 
  export const router = createBrowserRouter([
@@ -32,7 +34,8 @@ import ComplaintsPage from "../pages/complains/ComplainPage";
        { path:"food/menu", element:<FoodMenuPage></FoodMenuPage>},
       { path:"food/orders" , element:<FoodOrdersPage />},
       {path:'/seat/apply',element:<SeatApplicationPage></SeatApplicationPage>},
-      {path:'/complaints',element:<ComplaintsPage></ComplaintsPage>}
+      {path:'/complaints',element:<ComplainPage></ComplainPage>},
+      {path:'/complaints/:id',element:<ComplaintDetailsPage></ComplaintDetailsPage>}
 
     ]
   }
