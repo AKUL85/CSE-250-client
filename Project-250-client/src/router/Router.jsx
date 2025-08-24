@@ -12,6 +12,8 @@ import FoodMenuPage from "../pages/food/FoodMenuPage";
 import SeatApplicationPage from "../pages/seat/SeatApplicationPage";
 import ComplainPage from "../pages/complains/ComplainPage";
 import ComplaintDetailsPage from "../pages/complains/ComplaintDetailsPage";
+import LaundryPage from "../pages/LaundryPage";
+import RoomsPage from "../pages/roomPage/RoomsPage";
 
 
 
@@ -35,7 +37,9 @@ import ComplaintDetailsPage from "../pages/complains/ComplaintDetailsPage";
       { path:"food/orders" , element:<FoodOrdersPage />},
       {path:'/seat/apply',element:<SeatApplicationPage></SeatApplicationPage>},
       {path:'/complaints',element:<ComplainPage></ComplainPage>},
-      {path:'/complaints/:id',element:<ComplaintDetailsPage></ComplaintDetailsPage>}
+      {path:'/complaints/:id',element:<ComplaintDetailsPage></ComplaintDetailsPage>},
+      {path:'/laundry',element:<LaundryPage></LaundryPage>},
+      {path:"/rooms",element:<RoomsPage></RoomsPage>}
 
     ]
   }
