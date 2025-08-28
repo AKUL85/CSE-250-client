@@ -14,6 +14,8 @@ import ComplainPage from "../pages/complains/ComplainPage";
 import ComplaintDetailsPage from "../pages/complains/ComplaintDetailsPage";
 import LaundryPage from "../pages/LaundryPage";
 import RoomsPage from "../pages/roomPage/RoomsPage";
+import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
 
 
 
@@ -39,7 +41,9 @@ import RoomsPage from "../pages/roomPage/RoomsPage";
       {path:'/complaints',element:<ComplainPage></ComplainPage>},
       {path:'/complaints/:id',element:<ComplaintDetailsPage></ComplaintDetailsPage>},
       {path:'/laundry',element:<LaundryPage></LaundryPage>},
-      {path:"/rooms",element:<RoomsPage></RoomsPage>}
+      {path:"/rooms",element:<RoomsPage></RoomsPage>},
+      {path:'/admin/users',element:<AdminUsersPage></AdminUsersPage>},
+      {path:'/admin/rooms',element:<AdminRoomsPage></AdminRoomsPage>}
 
     ]
   }
