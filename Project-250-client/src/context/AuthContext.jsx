@@ -35,11 +35,12 @@ function AuthProvider({ children }) {
 
     const signOutUser = async () => {
         setLoading(true);
-        await fetch('https://language-exchange-server.onrender.com/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
+        // await fetch('https://language-exchange-server.onrender.com/logout', {
+        //     method: 'POST',
+        //     credentials: 'include'
+        // });
         return signOut(auth);
+        
     };
 
     useEffect(() => {

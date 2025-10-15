@@ -4,8 +4,8 @@ export const mockUsers = [
   {
     id: '1',
     role: 'student',
-    name: 'John Doe',
-    email: 'john.doe@university.edu',
+    name: 'Drubo ',
+    email: 'Drubo.doe@university.edu',
     studentId: 'STU001',
     phone: '+1234567890',
     avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400',
@@ -19,7 +19,7 @@ export const mockUsers = [
   {
     id: '2',
     role: 'admin',
-    name: 'Sarah Wilson',
+    name: 'Sarah ',
     email: 'admin@university.edu',
     studentId: null,
     phone: '+1234567892',
@@ -34,7 +34,7 @@ export const mockUsers = [
   {
     id: '3',
     role: 'student',
-    name: 'Mike Johnson',
+    name: 'MJ Saif',
     email: 'mike.johnson@university.edu',
     studentId: 'STU002',
     phone: '+1234567894',
@@ -169,7 +169,7 @@ export const mockRooms = [
   {
     id: '1',
     number: 'A-201',
-    type: 'double',
+    type: 'Quadra',
     capacity: 2,
     floor: 2,
     block: 'A',
@@ -181,7 +181,7 @@ export const mockRooms = [
   {
     id: '2',
     number: 'B-105',
-    type: 'single',
+    type: 'Quadra',
     capacity: 1,
     floor: 1,
     block: 'B',
@@ -193,7 +193,7 @@ export const mockRooms = [
   {
     id: '3',
     number: 'A-205',
-    type: 'double',
+    type: 'Quadra',
     capacity: 2,
     floor: 2,
     block: 'A',

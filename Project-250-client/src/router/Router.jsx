@@ -1,7 +1,7 @@
 import {
   createBrowserRouter,
   Navigate,
- 
+
 } from "react-router-dom";
 import AppShell from "../layout/AppShell";
 import LoginPage from "../pages/auth/LoginPage";
@@ -19,7 +19,7 @@ import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
 
 
 
- export const router = createBrowserRouter([
+export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
@@ -27,23 +27,23 @@ import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
   {
     path: "/",
     element: (
-    
-        <AppShell />
-      
+
+      <AppShell />
+
     ),
-    children:[
+    children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <DashboardPage /> },
-      {path:'profile',element:<ProfilePage2></ProfilePage2>},
-       { path:"food/menu", element:<FoodMenuPage></FoodMenuPage>},
-      { path:"food/orders" , element:<FoodOrdersPage />},
-      {path:'/seat/apply',element:<SeatApplicationPage></SeatApplicationPage>},
-      {path:'/complaints',element:<ComplainPage></ComplainPage>},
-      {path:'/complaints/:id',element:<ComplaintDetailsPage></ComplaintDetailsPage>},
-      {path:'/laundry',element:<LaundryPage></LaundryPage>},
-      {path:"/rooms",element:<RoomsPage></RoomsPage>},
-      {path:'/admin/users',element:<AdminUsersPage></AdminUsersPage>},
-      {path:'/admin/rooms',element:<AdminRoomsPage></AdminRoomsPage>}
+      { path: 'profile', element: <ProfilePage2></ProfilePage2> },
+      { path: "food/menu", element: <FoodMenuPage></FoodMenuPage> },
+      { path: "food/orders", element: <FoodOrdersPage /> },
+      { path: '/seat/apply', element: <SeatApplicationPage></SeatApplicationPage> },
+      { path: '/complaints', element: <ComplainPage></ComplainPage> },
+      { path: '/complaints/:id', element: <ComplaintDetailsPage></ComplaintDetailsPage> },
+      { path: '/laundry', element: <LaundryPage></LaundryPage> },
+      { path: "/rooms", element: <RoomsPage></RoomsPage> },
+      { path: '/admin/users', element: <AdminUsersPage></AdminUsersPage> },
+      { path: '/admin/rooms', element: <AdminRoomsPage></AdminRoomsPage> }
 
     ]
   }

@@ -34,7 +34,8 @@ const occupancyData = [
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const isStudent = user?.role === 'student';
+  // const isStudent = user?.role === 'student';
+  const isStudent =false;
   const kpis = isStudent ? mockDashboardKPIs.student : mockDashboardKPIs.admin;
 
   const containerVariants = {
@@ -197,7 +198,7 @@ const DashboardPage = () => {
                     <p className="text-sm font-medium text-zinc-900">
                       Wallet topped up
                     </p>
-                    <p className="text-xs text-zinc-500">+$100.00 via bKash</p>
+                    <p className="text-xs text-zinc-500">+100.00 taka via bKash</p>
                     <p className="text-xs text-zinc-400">3 days ago</p>
                   </div>
                 </div>
@@ -209,7 +210,7 @@ const DashboardPage = () => {
                     <p className="text-sm font-medium text-zinc-900">
                       Food order placed
                     </p>
-                    <p className="text-xs text-zinc-500">Beef Stir Fry - $15.25</p>
+                    <p className="text-xs text-zinc-500">Beef Stir Fry - 95 taka</p>
                     <p className="text-xs text-zinc-400">30 minutes ago</p>
                   </div>
                 </div>
@@ -274,7 +275,7 @@ const DashboardPage = () => {
           trendValue="2.3%"
         />
         <StatTile
-          title="Monthly Revenue"
+          title="Monthly Cost"
           value={`$${kpis.monthlyRevenue.toLocaleString()}`}
           icon={DollarSign}
           color="accent"
@@ -295,7 +296,7 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants}>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-900">Monthly Revenue</h3>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-900">Monthly Cost</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" className="text-zinc-300" />

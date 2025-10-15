@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Menu, Search, Bell, User, LogOut, 
-  Settings, CreditCard 
+import Swal from 'sweetalert2';
+import {
+  Menu, Search, Bell, User, LogOut,
+  Settings, CreditCard
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const TopBar = ({ onMenuClick }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState(2); // Mock notification count
-
+  const { signOutUser } = useAuth()
   // Mock user data (replace with real data later)
   const user = {
     name: "John Doe",
@@ -18,7 +21,30 @@ const TopBar = ({ onMenuClick }) => {
     walletBalance: 120.50
   };
 
-  const logout = () => alert("Logged out (replace with real logic)");
+const navigate=useNavigate();
+
+  const logout = async () => {
+    try {
+      await signOutUser();
+      await Swal.fire({
+        icon: 'success',
+        title: 'Signed out!',
+        text: 'You have been successfully signed out.',
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+      navigate('/login');
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Signout Failed',
+        text: error.message || 'Something went wrong. Please try again.',
+        confirmButtonColor: '#6C5CE7',
+      });
+    }
+  };
 
   return (
     <header className="bg-gradient-to-r from-green-400 via-purple-400 to-pink-400 shadow-lg px-4 lg:px-6 h-16 flex items-center justify-between relative z-30">
