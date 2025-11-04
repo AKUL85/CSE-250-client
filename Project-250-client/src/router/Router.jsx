@@ -1,7 +1,6 @@
 import {
   createBrowserRouter,
   Navigate,
-
 } from "react-router-dom";
 import AppShell from "../layout/AppShell";
 import LoginPage from "../pages/auth/LoginPage";
@@ -16,8 +15,8 @@ import LaundryPage from "../pages/LaundryPage";
 import RoomsPage from "../pages/roomPage/RoomsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
-
-
+import ProtectedRoute from "../pages/auth/ProtectedRoute";
+import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,24 +26,27 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-
-      <AppShell />
-
+      <ProtectedRoute>      {/* ✅ Protect everything inside AppShell */}
+        <AppShell />
+      </ProtectedRoute>
     ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <DashboardPage /> },
-      { path: 'profile', element: <ProfilePage2></ProfilePage2> },
-      { path: "food/menu", element: <FoodMenuPage></FoodMenuPage> },
+      { path: "profile", element: <ProfilePage2 /> },
+      { path: "food/menu", element: <FoodMenuPage /> },
       { path: "food/orders", element: <FoodOrdersPage /> },
-      { path: '/seat/apply', element: <SeatApplicationPage></SeatApplicationPage> },
-      { path: '/complaints', element: <ComplainPage></ComplainPage> },
-      { path: '/complaints/:id', element: <ComplaintDetailsPage></ComplaintDetailsPage> },
-      { path: '/laundry', element: <LaundryPage></LaundryPage> },
-      { path: "/rooms", element: <RoomsPage></RoomsPage> },
-      { path: '/admin/users', element: <AdminUsersPage></AdminUsersPage> },
-      { path: '/admin/rooms', element: <AdminRoomsPage></AdminRoomsPage> }
-
-    ]
-  }
+      { path: "seat/apply", element: <SeatApplicationPage /> },
+      { path: "complaints", element: <ComplainPage /> },
+      { path: "complaints/:id", element: <ComplaintDetailsPage /> },
+      { path: "laundry", element: <LaundryPage /> },
+      { path: "rooms", element: <RoomsPage /> },
+      { path: "admin/users", element: <AdminUsersPage /> },
+      { path: "admin/rooms", element: <AdminRoomsPage /> },
+      {
+        path: "/admin/register-student",
+        element: <RegisterStudentPage />,
+      }
+    ],
+  },
 ]);

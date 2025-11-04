@@ -10,7 +10,7 @@ const useAuth = () => {
       id: '123',
       name: 'Akul Biswas',
       email: 'john.doe@example.com',
-      role: 'student', // Change to 'admin' to test admin links
+      role: 'admin', // Change to 'admin' to test admin links
       room: 'A-201',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop',
     },
@@ -43,6 +43,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/admin/menus', icon: Utensils, label: 'Manage Menus' },
     { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { to: '/complaints', icon: AlertTriangle, label: 'Complaints' },
+    { to : '/admin/register-student', icon: Shield, label: 'Register Student'}
+
     // { to: '/chat', icon: MessageSquare, label: 'Chat' },
   ];
 

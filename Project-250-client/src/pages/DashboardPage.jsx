@@ -35,7 +35,7 @@ const occupancyData = [
 const DashboardPage = () => {
   const { user } = useAuth();
   // const isStudent = user?.role === 'student';
-  const isStudent =false;
+  const isStudent =true;
   const kpis = isStudent ? mockDashboardKPIs.student : mockDashboardKPIs.admin;
 
   const containerVariants = {

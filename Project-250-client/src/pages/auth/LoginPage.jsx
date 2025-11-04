@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Swal from 'sweetalert2';
-import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { FaSignInAlt } from "react-icons/fa";
+import {  Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,10 +33,7 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: 'john.doe@university.edu',
-      password: 'password123',
-    },
+    
   });
    // Redirect if already logged in
   if (user) {
@@ -89,7 +87,7 @@ const LoginPage = () => {
             backgroundImage: 'url(https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg?auto=compress&cs=tinysrgb&w=1200)',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/90 to-purple-600/90" />
+        <div className="absolute inset-0 " />
         <div className="relative z-10 flex flex-col justify-center p-12 text-white">
           <motion.div
             variants={containerVariants}
@@ -139,7 +137,8 @@ const LoginPage = () => {
               variants={itemVariants}
               className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mb-4 shadow-md"
             >
-              <Shield className="w-8 h-8 text-white" />
+              
+              <FaSignInAlt className="w-8 h-8 text-white" />
             </motion.div>
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               Sign in to your account
@@ -149,19 +148,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          {/* Demo accounts info */}
-          <motion.div
-            variants={itemVariants}
-            className="mb-6 p-4 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 shadow-sm"
-          >
-            <h4 className="font-medium text-indigo-900 dark:text-indigo-100 mb-2">Demo Accounts</h4>
-            <div className="text-sm text-indigo-800 dark:text-indigo-200 space-y-1">
-              <p><strong>Student:</strong> john.doe@university.edu</p>
-              <p><strong>Admin:</strong> admin@university.edu</p>
-              <p><strong>Password:</strong> password123</p>
-            </div>
-          </motion.div>
-
+          
           {/* Login form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>

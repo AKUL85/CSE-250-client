@@ -35,22 +35,29 @@ function AuthProvider({ children }) {
 
     const signOutUser = async () => {
         setLoading(true);
-        // await fetch('https://language-exchange-server.onrender.com/logout', {
-        //     method: 'POST',
-        //     credentials: 'include'
-        // });
+    
         return signOut(auth);
         
     };
 
     useEffect(() => {
-        const unsubscribed = onAuthStateChanged(auth, async (currentuser) => {
-            setUser(currentuser);
-            setLoading(false);
-        });
+  const unsubscribed = onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      // Fetch ID token with claims
+      const idTokenResult = await currentUser.getIdTokenResult(true);
+      // Attach role to user object for easy access
+      currentUser.role = idTokenResult.claims.role || null;
 
-        return unsubscribed;
-    }, []);
+      setUser(currentUser);
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
+  });
+
+  return unsubscribed;
+}, []);
+
 
     const authInfo = {
         user,
