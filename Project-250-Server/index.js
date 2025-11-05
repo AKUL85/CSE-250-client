@@ -105,6 +105,20 @@ app.get("/users", async (req, res) => {
     res.status(500).json({ message: "Error fetching users", error: error.message });
   }
 });
+const { ObjectId } = require("mongodb");
+
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    if (user?.uid) await admin.auth().deleteUser(user.uid).catch(() => {});
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(result.deletedCount ? 200 : 404).json({ message: "Deleted" });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
 
 
 // ✅ Start server
