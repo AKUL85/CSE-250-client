@@ -13,7 +13,7 @@ const PageHeader = ({ onAddRoom }) => {
     rent: "",
     status: "available",
   });
-
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewRoom((prev) => ({ ...prev, [name]: value }));

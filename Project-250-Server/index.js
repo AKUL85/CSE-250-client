@@ -13,7 +13,6 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-
 const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -288,7 +287,4 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
-
-
-
 
