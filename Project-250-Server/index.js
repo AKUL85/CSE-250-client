@@ -28,6 +28,7 @@ const client = new MongoClient(uri, {
 let usersCollection;
 let complainCollection;
 let seatApplicationCollection;
+let roomsCollection;
 
 async function connectDB() {
   try {
@@ -38,6 +39,7 @@ async function connectDB() {
     usersCollection = db.collection("users");
     complainCollection = db.collection("complains");
     seatApplicationCollection = db.collection("seatApplications");
+     roomsCollection = db.collection("rooms");
 
     // ✅ Set collections AFTER connection is ready
     setCollections({ complainCollection });
@@ -115,12 +117,16 @@ app.get("/seat-applications", async (req, res) => {
 // 🔹 Student Registration
 app.post("/register-student", async (req, res) => {
   try {
-    const { name, email, password, role, room, avatar } = req.body;
+    const { name, studentId, email, phone, password, role, room, avatar } =
+      req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, email, and password are required" });
     }
 
+    // ✅ Step 1: Create Firebase user
     const userRecord = await admin.auth().createUser({
       email,
       password,
@@ -128,12 +134,16 @@ app.post("/register-student", async (req, res) => {
     });
 
     const assignedRole = role || "student";
-    await admin.auth().setCustomUserClaims(userRecord.uid, { role: assignedRole });
+    await admin
+      .auth()
+      .setCustomUserClaims(userRecord.uid, { role: assignedRole });
 
     const newUser = {
       uid: userRecord.uid,
+      studentId: studentId || `ST-${Math.floor(1000 + Math.random() * 9000)}`,
       name,
       email,
+      phone: phone || "N/A",
       role: assignedRole,
       room: room || "Not assigned",
       avatar:
@@ -142,10 +152,34 @@ app.post("/register-student", async (req, res) => {
       createdAt: new Date(),
     };
 
-    await usersCollection.insertOne(newUser);
-    res.status(201).json({ message: "Student registered successfully", user: newUser });
+    // ✅ Step 2: Try inserting into MongoDB
+    try {
+      const result = await usersCollection.insertOne(newUser);
+      console.log("User inserted in MongoDB with id:", result.insertedId);
+    } catch (mongoErr) {
+      // 🚨 Step 3: Rollback Firebase user if MongoDB insert fails
+      console.error("MongoDB insertion failed:", mongoErr);
+      await admin.auth().deleteUser(userRecord.uid);
+      return res
+        .status(500)
+        .json({ message: "Failed to save user data. User rolled back." });
+    }
+
+    res.status(201).json({
+      message: "Student registered successfully",
+      user: newUser,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to register student", error: error.message });
+    console.error("Error registering student:", error);
+
+    // If Firebase creation failed because user already exists
+    if (error.code === "auth/email-already-exists") {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    res
+      .status(500)
+      .json({ message: "Failed to register student", error: error.message });
   }
 });
 
@@ -171,6 +205,81 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
+
+
+// ROOMS API
+
+// ✅ Get all rooms
+app.get("/rooms/all", async (req, res) => {
+  try {
+    const rooms = await roomsCollection.find().toArray();
+    console.log("collected room data");
+    res.status(200).json(rooms);
+  } catch (error) {
+    console.error("❌ Error fetching rooms:", error);
+    res.status(500).json({ error: "Failed to fetch rooms" });
+  }
+});
+
+// ✅ Add new room
+app.post("/rooms/add", async (req, res) => {
+  try {
+    const { number, type, capacity, floor, block, rent, status } = req.body;
+
+    if (!number || !type || !capacity || !floor || !block || !rent || !status) {
+      console.log("❌ Validation failed - missing fields");
+      return res.status(400).json({
+        error: "All fields are required",
+      });
+    }
+
+    console.log("🔍 Checking for duplicate room...");
+    // Check if room already exists
+    const existingRoom = await roomsCollection.findOne({
+      number: number.toString().trim(),
+    });
+
+    if (existingRoom) {
+      console.log("❌ Room already exists:", existingRoom);
+      return res.status(409).json({
+        error: `Room ${number} already exists`,
+      });
+    }
+
+    // Create new room object
+    const newRoom = {
+      number: number.toString().trim(),
+      type: type.trim().toLowerCase(),
+      capacity: parseInt(capacity),
+      floor: parseInt(floor),
+      block: block.trim().toUpperCase(),
+      rent: parseFloat(rent),
+      status: status.trim().toLowerCase(),
+      occupants: [],
+      amenities: ["wifi", "fan", "wardrobe", "study_table"],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Insert into database
+    const result = await roomsCollection.insertOne(newRoom);
+
+    // Verify the room was actually inserted
+    const verifiedRoom = await roomsCollection.findOne({
+      _id: result.insertedId,
+    });
+
+    res.status(201).json({
+      _id: result.insertedId,
+      ...newRoom,
+    });
+  } catch (error) {
+    console.error("❌ Error adding room:", error);
+    res.status(500).json({ error: "Failed to add room: " + error.message });
+  }
+});
+
+
 // 🔹 Root Route
 app.get("/", (req, res) => {
   res.send("✅ Backend is running!");
@@ -179,3 +288,7 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
+
+
+
+
