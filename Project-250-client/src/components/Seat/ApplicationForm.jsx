@@ -1,4 +1,3 @@
-// src/components/ApplicationForm.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -12,7 +11,13 @@ const applicationSchema = z.object({
   roomType: z.string().min(1, 'Please select a room type'),
   floor: z.string().min(1, 'Please select a floor'),
   block: z.string().min(1, 'Please select a block'),
-  specialRequests: z.string().max(500, 'Special requests must be under 500 characters'),
+  // ⭐️ NEW REQUIRED FIELDS ⭐️
+  department: z.string().min(1, 'Your department is required'),
+  cgpa: z.string().min(1, 'Your CGPA is required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid CGPA format (e.g., 3.50)'), // Basic validation
+  semester: z.string().min(1, 'Your current semester is required').regex(/^\d+$/, 'Semester must be a number'),
+  // -------------------------
+  specialRequests: z.string().max(500, 'Special requests must be under 500 characters').optional().or(z.literal('')),
+  proofFile: z.any().optional(), // For file
 });
 
 const itemVariants = {
@@ -107,23 +112,54 @@ const ApplicationForm = ({ onSubmit }) => {
                 </p>
               )}
             </div>
+            {/* ⭐️ REGISTERED NEW FIELDS ⭐️ */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Department *
               </label>
-              <input className='text-gray-900 py-2 px-6 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' placeholder='Dept' type="text" />
+              <input 
+                {...register('department')}
+                className='w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' 
+                placeholder='e.g., Computer Science' 
+                type="text" 
+              />
+              {errors.department && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.department.message}
+                </p>
+              )}
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your CGPA*
               </label>
-              <input className='text-gray-900 py-2 px-6 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' placeholder='CGPA' type="text" />
+              <input 
+                {...register('cgpa')}
+                className='w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' 
+                placeholder='e.g., 3.50' 
+                type="text" 
+              />
+              {errors.cgpa && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.cgpa.message}
+                </p>
+              )}
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                 Your Semester *
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Semester *
               </label>
-              <input className='text-gray-900 py-2 px-6 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' placeholder='Semester' type="text" />
+              <input 
+                {...register('semester')}
+                className='w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' 
+                placeholder='e.g., 5' 
+                type="text" 
+              />
+              {errors.semester && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.semester.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -143,6 +179,27 @@ const ApplicationForm = ({ onSubmit }) => {
               </p>
             )}
           </div>
+          {/* 🟩 File Upload Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Supporting Document (Optional)
+            </label>
+            <input
+              type="file"
+              {...register('proofFile')}
+              accept=".pdf,.jpg,.png"
+              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-xl cursor-pointer bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Upload a document or image proving your need for accommodation
+            </p>
+            {errors.proofFile && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.proofFile.message}
+                </p>
+              )}
+          </div>
+
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <h4 className="font-medium text-blue-900 mb-2">

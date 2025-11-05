@@ -1,73 +1,135 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const bodyParser = require("body-parser");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const admin = require("firebase-admin");
+const multer = require("multer");
 require("dotenv").config();
+
+const { router: complainRouter, setCollections } = require("./complain");
 
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-app.use(bodyParser.json());
 
-// ✅ Firebase Admin SDK init
+
 const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// ✅ MongoDB setup
+// 🔹 MongoDB Setup
 const uri = `mongodb+srv://${process.env.USERID}:${process.env.PASSWORD}@cluster0.rdbtijm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
 });
 
-// ✅ Connect to MongoDB
 let usersCollection;
+let complainCollection;
+let seatApplicationCollection;
+
 async function connectDB() {
   try {
     await client.connect();
+    console.log("✅ Connected to MongoDB");
+
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
-    console.log("✅ Connected to MongoDB");
+    complainCollection = db.collection("complains");
+    seatApplicationCollection = db.collection("seatApplications");
+
+    // ✅ Set collections AFTER connection is ready
+    setCollections({ complainCollection });
+
+    // ✅ Register routes AFTER setting collections
+    app.use("/api", complainRouter);
+
+    console.log("✅ Collections set successfully");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
   }
 }
+
 connectDB();
 
+// 🔹 Multer Configuration for Seat Application
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// 🟩 Default route
-app.get("/", (req, res) => {
-  res.send("Hello from the backend!");
+// 🔹 Seat Application Routes
+app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
+  try {
+    const applicationData = req.body;
+    const proofFile = req.file;
+
+    if (
+      !applicationData.roomType ||
+      !applicationData.floor ||
+      !applicationData.block ||
+      !applicationData.department ||
+      !applicationData.cgpa ||
+      !applicationData.semester
+    ) {
+      return res.status(400).json({ message: "Missing required application data." });
+    }
+
+    const newApplication = {
+      ...applicationData,
+      proofFile: proofFile
+        ? {
+            filename: proofFile.originalname,
+            mimetype: proofFile.mimetype,
+            size: proofFile.size,
+            uploadStatus: "received",
+          }
+        : null,
+      status: "submitted",
+      createdAt: new Date(),
+      timeline: [
+        { status: "submitted", note: "Application submitted", date: new Date() },
+      ],
+    };
+
+    const result = await seatApplicationCollection.insertOne(newApplication);
+    res.status(201).json({
+      message: "Application submitted successfully",
+      id: result.insertedId,
+    });
+  } catch (error) {
+    console.error("Error submitting seat application:", error);
+    res.status(500).json({ message: "Failed to submit application", error: error.message });
+  }
 });
 
+// 🔹 Fetch all seat applications
+app.get("/seat-applications", async (req, res) => {
+  try {
+    const applications = await seatApplicationCollection.find().toArray();
+    res.status(200).json(applications);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch applications", error: error.message });
+  }
+});
+
+// 🔹 Student Registration
 app.post("/register-student", async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-
     const { name, email, password, role, room, avatar } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email, and password are required" });
     }
 
-    // 1️⃣ Create user in Firebase
     const userRecord = await admin.auth().createUser({
       email,
       password,
       displayName: name,
     });
-    console.log("Firebase user created:", userRecord.uid);
 
-    // 2️⃣ Assign custom role (student/admin)
     const assignedRole = role || "student";
     await admin.auth().setCustomUserClaims(userRecord.uid, { role: assignedRole });
-    console.log("Custom claims set");
 
-    // 3️⃣ Save user data in MongoDB
     const newUser = {
       uid: userRecord.uid,
       name,
@@ -80,23 +142,14 @@ app.post("/register-student", async (req, res) => {
       createdAt: new Date(),
     };
 
-    const result = await usersCollection.insertOne(newUser);
-    console.log("User inserted in MongoDB with id:", result.insertedId);
-
-    // 4️⃣ Return success response
-    res.status(201).json({
-      message: "Student registered successfully",
-      user: newUser,
-    });
+    await usersCollection.insertOne(newUser);
+    res.status(201).json({ message: "Student registered successfully", user: newUser });
   } catch (error) {
-    console.error("Error registering student:", error);
     res.status(500).json({ message: "Failed to register student", error: error.message });
   }
 });
 
-
-
-// 🟩 Route: Get all users (for admin dashboard)
+// 🔹 Get & Delete Users
 app.get("/users", async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
@@ -105,7 +158,6 @@ app.get("/users", async (req, res) => {
     res.status(500).json({ message: "Error fetching users", error: error.message });
   }
 });
-const { ObjectId } = require("mongodb");
 
 app.delete("/users/:id", async (req, res) => {
   try {
@@ -119,9 +171,11 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
+// 🔹 Root Route
+app.get("/", (req, res) => {
+  res.send("✅ Backend is running!");
+});
 
-
-// ✅ Start server
 app.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 });

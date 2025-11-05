@@ -17,6 +17,7 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
 import ProtectedRoute from "../pages/auth/ProtectedRoute";
 import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
+import ComplainForm from "../pages/complains/ComplainForm";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,8 @@ export const router = createBrowserRouter([
       {
         path: "/admin/register-student",
         element: <RegisterStudentPage />,
+      },{
+        path:"/complain-form", element:<ComplainForm></ComplainForm>
       }
     ],
   },
