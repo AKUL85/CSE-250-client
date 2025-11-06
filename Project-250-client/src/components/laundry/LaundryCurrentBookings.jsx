@@ -5,7 +5,7 @@ import { mockLaundrySlots } from "../../data/mockData";
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
 
-
+ 
 const LaundryCurrentBookings = ({ handleStartMachine }) => {
   const userBookings = mockLaundrySlots.filter(slot => slot.userId === "1");
 

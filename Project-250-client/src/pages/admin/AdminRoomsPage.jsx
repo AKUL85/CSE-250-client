@@ -18,7 +18,7 @@ const AdminRoomsPage = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await fetch("http://localhost:4000/rooms/all");
+        const res = await fetch("http://localhost:4000/api/rooms/all");
         if (!res.ok) throw new Error("Failed to fetch rooms");
         const data = await res.json();
         setRooms(data);
@@ -58,7 +58,7 @@ const AdminRoomsPage = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`http://localhost:4000/rooms/${room._id}`, {
+        const res = await fetch(`http://localhost:4000/api/rooms/${room._id}`, {
           method: "DELETE",
         });
         if (!res.ok) throw new Error("Failed to delete room");

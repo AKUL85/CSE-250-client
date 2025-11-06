@@ -7,7 +7,7 @@ let complainCollection;
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-const setCollections = ({ complainCollection: cc }) => {
+const setComplainCollections = ({ complainCollection: cc }) => {
   complainCollection = cc;
 };
 
@@ -25,7 +25,8 @@ router.post("/complain", upload.array("photos", 5), async (req, res) => {
 
     const photoUrls =
       req.files?.map(
-        (file) => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
+        (file) =>
+          `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
       ) || [];
 
     const newComplain = {
@@ -63,4 +64,31 @@ router.get("/complains", async (req, res) => {
   }
 });
 
-module.exports = { router, setCollections };
+// GET: Fetch complaints with ID
+router.get("/complains/:_id", async (req, res) => {
+  const { _id } = req.params;
+  console.log(_id);
+  try {
+    if (!complainCollection)
+      return res.status(500).json({ message: "Database not initialized" });
+
+    console.log("called");
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid complaint ID" });
+    }
+
+    const complaint = await complainCollection.findOne({
+      _id: new ObjectId(_id),
+    });
+    console.log("called3");
+
+    if (!complaint)
+      return res.status(404).json({ error: "Complaint not found" });
+    console.log("found complaint");
+    res.json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = { router, setComplainCollections };

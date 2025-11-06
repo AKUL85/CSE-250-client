@@ -122,9 +122,9 @@ const ComplaintCard = ({ complaint }) => {
               </div>
 
               <Link
-                to={`/complaints/${complaint.id}`}
+                to={`/complaints/${complaint._id}`}
                 className="flex items-center gap-2 px-4 py-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors font-medium"
-              >
+              >{console.log("bajhbjb ", complaint._id)}
                 <Eye className="w-4 h-4" />
                 View Details
               </Link>

@@ -23,7 +23,7 @@ const PageHeader = ({ onAddRoom }) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:4000/rooms/add", {
+      const res = await fetch("http://localhost:4000/api/rooms/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRoom),

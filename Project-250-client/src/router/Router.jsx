@@ -39,7 +39,7 @@ export const router = createBrowserRouter([
       { path: "food/orders", element: <FoodOrdersPage /> },
       { path: "seat/apply", element: <SeatApplicationPage /> },
       { path: "complaints", element: <ComplainPage /> },
-      { path: "complaints/:id", element: <ComplaintDetailsPage /> },
+      { path: "complaints/:_id", element: <ComplaintDetailsPage /> },
       { path: "laundry", element: <LaundryPage /> },
       { path: "rooms", element: <RoomsPage /> },
       { path: "admin/users", element: <AdminUsersPage /> },
@@ -50,6 +50,6 @@ export const router = createBrowserRouter([
       },{
         path:"/complain-form", element:<ComplainForm></ComplainForm>
       }
-    ],
+    ], 
   },
 ]);

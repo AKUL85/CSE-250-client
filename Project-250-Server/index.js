@@ -5,7 +5,12 @@ const admin = require("firebase-admin");
 const multer = require("multer");
 require("dotenv").config();
 
-const { router: complainRouter, setCollections } = require("./complain");
+const {
+  router: complainRouter,
+  setComplainCollections,
+} = require("./complain");
+const { router: laundryRouter, setLaundryCollections } = require("./laundry");
+const { router: rommsRouter, setRoomsCollection } = require("./rooms");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -21,13 +26,18 @@ admin.initializeApp({
 // 🔹 MongoDB Setup
 const uri = `mongodb+srv://${process.env.USERID}:${process.env.PASSWORD}@cluster0.rdbtijm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
-  serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
 let usersCollection;
 let complainCollection;
 let seatApplicationCollection;
 let roomsCollection;
+let laundryCollection;
 
 async function connectDB() {
   try {
@@ -38,13 +48,18 @@ async function connectDB() {
     usersCollection = db.collection("users");
     complainCollection = db.collection("complains");
     seatApplicationCollection = db.collection("seatApplications");
-     roomsCollection = db.collection("rooms");
+    roomsCollection = db.collection("rooms");
+    laundryCollection = db.collection("laundry");
 
-    // ✅ Set collections AFTER connection is ready
-    setCollections({ complainCollection });
+    // Attach collection setters
+    setComplainCollections({ complainCollection });
+    setLaundryCollections({ laundryCollection });
+    setRoomsCollection({ roomsCollection });
 
-    // ✅ Register routes AFTER setting collections
+    // Register routes
     app.use("/api", complainRouter);
+    app.use("/api", laundryRouter);
+    app.use("/api", rommsRouter);
 
     console.log("✅ Collections set successfully");
   } catch (error) {
@@ -72,7 +87,9 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       !applicationData.cgpa ||
       !applicationData.semester
     ) {
-      return res.status(400).json({ message: "Missing required application data." });
+      return res
+        .status(400)
+        .json({ message: "Missing required application data." });
     }
 
     const newApplication = {
@@ -88,7 +105,11 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       status: "submitted",
       createdAt: new Date(),
       timeline: [
-        { status: "submitted", note: "Application submitted", date: new Date() },
+        {
+          status: "submitted",
+          note: "Application submitted",
+          date: new Date(),
+        },
       ],
     };
 
@@ -99,7 +120,9 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
     });
   } catch (error) {
     console.error("Error submitting seat application:", error);
-    res.status(500).json({ message: "Failed to submit application", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to submit application", error: error.message });
   }
 });
 
@@ -109,7 +132,9 @@ app.get("/seat-applications", async (req, res) => {
     const applications = await seatApplicationCollection.find().toArray();
     res.status(200).json(applications);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch applications", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch applications", error: error.message });
   }
 });
 
@@ -188,7 +213,9 @@ app.get("/users", async (req, res) => {
     const users = await usersCollection.find().toArray();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching users", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching users", error: error.message });
   }
 });
 
@@ -196,7 +223,11 @@ app.delete("/users/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
-    if (user?.uid) await admin.auth().deleteUser(user.uid).catch(() => {});
+    if (user?.uid)
+      await admin
+        .auth()
+        .deleteUser(user.uid)
+        .catch(() => {});
     const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
     res.status(result.deletedCount ? 200 : 404).json({ message: "Deleted" });
   } catch (e) {
@@ -204,79 +235,6 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-
-
-// ROOMS API
-
-// ✅ Get all rooms
-app.get("/rooms/all", async (req, res) => {
-  try {
-    const rooms = await roomsCollection.find().toArray();
-    console.log("collected room data");
-    res.status(200).json(rooms);
-  } catch (error) {
-    console.error("❌ Error fetching rooms:", error);
-    res.status(500).json({ error: "Failed to fetch rooms" });
-  }
-});
-
-// ✅ Add new room
-app.post("/rooms/add", async (req, res) => {
-  try {
-    const { number, type, capacity, floor, block, rent, status } = req.body;
-
-    if (!number || !type || !capacity || !floor || !block || !rent || !status) {
-      console.log("❌ Validation failed - missing fields");
-      return res.status(400).json({
-        error: "All fields are required",
-      });
-    }
-
-    console.log("🔍 Checking for duplicate room...");
-    // Check if room already exists
-    const existingRoom = await roomsCollection.findOne({
-      number: number.toString().trim(),
-    });
-
-    if (existingRoom) {
-      console.log("❌ Room already exists:", existingRoom);
-      return res.status(409).json({
-        error: `Room ${number} already exists`,
-      });
-    }
-
-    // Create new room object
-    const newRoom = {
-      number: number.toString().trim(),
-      type: type.trim().toLowerCase(),
-      capacity: parseInt(capacity),
-      floor: parseInt(floor),
-      block: block.trim().toUpperCase(),
-      rent: parseFloat(rent),
-      status: status.trim().toLowerCase(),
-      occupants: [],
-      amenities: ["wifi", "fan", "wardrobe", "study_table"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Insert into database
-    const result = await roomsCollection.insertOne(newRoom);
-
-    // Verify the room was actually inserted
-    const verifiedRoom = await roomsCollection.findOne({
-      _id: result.insertedId,
-    });
-
-    res.status(201).json({
-      _id: result.insertedId,
-      ...newRoom,
-    });
-  } catch (error) {
-    console.error("❌ Error adding room:", error);
-    res.status(500).json({ error: "Failed to add room: " + error.message });
-  }
-});
 
 
 // 🔹 Root Route
@@ -287,4 +245,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
-
