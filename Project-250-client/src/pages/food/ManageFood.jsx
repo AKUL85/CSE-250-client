@@ -71,55 +71,7 @@ const IconClose = () => (
   </svg>
 );
 
-// --- Initial Mock Data ---
-const initialMenuData = [
-  {
-    id: "m1",
-    day: "Monday",
-    meal: "Breakfast",
-    name: "Omelette & Toast",
-    price: 45,
-    description: "Two eggs with buttered toast and jam.",
-    imageUrl: "https://placehold.co/600x400/FACC15/4A5568?text=Omelette",
-  },
-  {
-    id: "m2",
-    day: "Monday",
-    meal: "Lunch",
-    name: "Chicken Curry",
-    price: 110,
-    description: "Spicy chicken curry with rice.",
-    imageUrl: "https://placehold.co/600x400/F87171/4A5568?text=Chicken+Curry",
-  },
-  {
-    id: "m3",
-    day: "Monday",
-    meal: "Dinner",
-    name: "Vegetable Khichuri",
-    price: 90,
-    description: "Mixed vegetables and lentils with rice.",
-    imageUrl: "https://placehold.co/600x400/86EFAC/4A5568?text=Khichuri",
-  },
-  {
-    id: "m4",
-    day: "Friday",
-    meal: "Lunch",
-    name: "Maser Jhol (Fish Curry)",
-    price: 120,
-    description: "Traditional Bengali fish curry with seasonal vegetables.",
-    imageUrl: "https://placehold.co/600x400/60A5FA/4A5568?text=Maser+Jhol",
-  },
-  {
-    id: "m5",
-    day: "Friday",
-    meal: "Dinner",
-    name: "Beef Bhuna",
-    price: 150,
-    description: "Spicy thick beef curry with paratha.",
-    imageUrl: "https://placehold.co/600x400/FCA5A5/4A5568?text=Beef+Bhuna",
-  },
-];
-
+// Remove initial mock data since we'll fetch from backend
 const DAYS_OF_WEEK = [
   "Saturday",
   "Sunday",
@@ -130,29 +82,66 @@ const DAYS_OF_WEEK = [
   "Friday",
 ];
 const MEALS = ["Breakfast", "Lunch", "Dinner"];
+const CATEGORIES = ["Main Course", "Appetizer", "Dessert", "Beverage", "Side Dish"];
+
 const emptyFormState = {
   name: "",
   price: "",
-  meal: "Breakfast",
+  mealType: "Breakfast",
+  category: "Main Course",
+  allergens: "",
+  calories: "",
   description: "",
-  imageUrl: "",
+  image: "",
 };
 
 // --- Main App Component ---
 export default function MannageFood() {
   const [selectedDay, setSelectedDay] = useState("Monday");
-  const [menuItems, setMenuItems] = useState(initialMenuData);
+  const [menuItems, setMenuItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null); // null for 'Add', object for 'Edit'
+  const [currentItem, setCurrentItem] = useState(null);
   const [formData, setFormData] = useState(emptyFormState);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch menu items from backend
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
+
+  const fetchMenuItems = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:4000/api/menu');
+      if (response.ok) {
+        const data = await response.json();
+        setMenuItems(data);
+      } else {
+        throw new Error('Failed to fetch menu items');
+      }
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load menu items',
+          confirmButtonColor: '#4f46e5'
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filtered meals based on selected day
   const filteredMeals = useMemo(() => {
     const itemsOnDay = menuItems.filter((item) => item.day === selectedDay);
     return {
-      Breakfast: itemsOnDay.filter((item) => item.meal === "Breakfast"),
-      Lunch: itemsOnDay.filter((item) => item.meal === "Lunch"),
-      Dinner: itemsOnDay.filter((item) => item.meal === "Dinner"),
+      Breakfast: itemsOnDay.filter((item) => item.mealType === "Breakfast"),
+      Lunch: itemsOnDay.filter((item) => item.mealType === "Lunch"),
+      Dinner: itemsOnDay.filter((item) => item.mealType === "Dinner"),
     };
   }, [menuItems, selectedDay]);
 
@@ -165,14 +154,21 @@ export default function MannageFood() {
       setFormData({
         name: item.name,
         price: item.price.toString(),
-        meal: item.meal,
+        mealType: item.mealType,
+        category: item.category,
+        allergens: item.allergens,
+        calories: item.calories ? item.calories.toString() : "",
         description: item.description,
-        imageUrl: item.imageUrl,
+        image: item.image,
       });
     } else {
       // Add mode
       setCurrentItem(null);
-      setFormData(emptyFormState);
+      setFormData({
+        ...emptyFormState,
+        mealType: "Breakfast",
+        category: "Main Course"
+      });
     }
     setIsModalOpen(true);
   };
@@ -181,6 +177,7 @@ export default function MannageFood() {
     setIsModalOpen(false);
     setCurrentItem(null);
     setFormData(emptyFormState);
+    setIsSubmitting(false);
   };
 
   const handleInputChange = (e) => {
@@ -188,59 +185,168 @@ export default function MannageFood() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, price, meal, description, imageUrl } = formData;
+    const { name, price, mealType, category, allergens, calories, description, image } = formData;
 
-    if (!name || !price || !meal) {
-      // Simple validation
-      // In a real app, you'd show an error message
-      console.error("Missing required fields");
+    if (!name || !price || !mealType || !category) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Missing Fields',
+          text: 'Please fill in all required fields',
+          confirmButtonColor: '#4f46e5'
+        });
+      }
       return;
     }
 
-    if (currentItem) {
-      // Update existing item
-      setMenuItems(
-        menuItems.map((item) =>
-          item.id === currentItem.id
-            ? {
-                ...item,
-                name,
-                price: parseFloat(price),
-                meal,
-                description,
-                imageUrl,
-              }
-            : item
-        )
-      );
-    } else {
-      // Add new item
-      const newItem = {
-        id: crypto.randomUUID(),
+    setIsSubmitting(true);
+
+    try {
+      const menuItemData = {
         day: selectedDay,
         name,
         price: parseFloat(price),
-        meal,
+        mealType,
+        category,
+        allergens: allergens || "None",
+        calories: calories ? parseInt(calories) : 0,
         description,
-        imageUrl:
-          imageUrl ||
-          `https://placehold.co/600x400/E2E8F0/4A5568?text=${encodeURIComponent(
-            name
-          )}`,
+        image: image || `https://placehold.co/600x400/E2E8F0/4A5568?text=${encodeURIComponent(name)}`,
       };
-      setMenuItems([...menuItems, newItem]);
+
+      if (currentItem) {
+        // Update existing item - use _id from MongoDB
+        const response = await fetch(`http://localhost:4000/api/menu/${currentItem._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(menuItemData),
+        });
+
+        if (response.ok) {
+          const updatedItem = await response.json();
+          setMenuItems(
+            menuItems.map((item) =>
+              item._id === currentItem._id
+                ? { ...updatedItem.menuItem }
+                : item
+            )
+          );
+          
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'Menu item updated successfully',
+              confirmButtonColor: '#4f46e5'
+            });
+          }
+        } else {
+          throw new Error('Failed to update menu item');
+        }
+      } else {
+        // Add new item
+        const response = await fetch('http://localhost:4000/api/menu', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(menuItemData),
+        });
+
+        if (response.ok) {
+          const newItemData = await response.json();
+          setMenuItems([...menuItems, newItemData.menuItem]);
+          
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'Menu item added successfully',
+              confirmButtonColor: '#4f46e5'
+            });
+          }
+        } else {
+          throw new Error('Failed to add menu item');
+        }
+      }
+
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error saving menu item:', error);
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to save menu item. Please try again.',
+          confirmButtonColor: '#4f46e5'
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    handleCloseModal();
   };
 
-  const handleDelete = (id) => {
-    // No window.confirm as per guidelines
-    // In a real app, you'd use a custom confirmation modal
-    setMenuItems(menuItems.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    if (typeof Swal !== 'undefined') {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`http://localhost:4000/api/menu/${id}`, {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            setMenuItems(menuItems.filter((item) => item._id !== id));
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Menu item has been deleted.',
+              icon: 'success',
+              confirmButtonColor: '#4f46e5'
+            });
+          } else {
+            throw new Error('Failed to delete menu item');
+          }
+        } catch (error) {
+          console.error('Error deleting menu item:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete menu item. Please try again.',
+            confirmButtonColor: '#4f46e5'
+          });
+        }
+      }
+    } else {
+      // Fallback if SweetAlert is not available
+      if (window.confirm('Are you sure you want to delete this menu item?')) {
+        setMenuItems(menuItems.filter((item) => item._id !== id));
+      }
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-100 min-h-screen font-inter p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 text-lg">Loading menu items...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-100 min-h-screen font-inter p-4 md:p-8 relative">
@@ -298,6 +404,7 @@ export default function MannageFood() {
         onChange={handleInputChange}
         isEditing={!!currentItem}
         selectedDay={selectedDay}
+        isSubmitting={isSubmitting}
       />
     </div>
   );
@@ -315,7 +422,7 @@ function MealColumn({ title, items, onEdit, onDelete }) {
         {items.length > 0 ? (
           items.map((item, index) => (
             <MenuItemCard
-              key={item.id}
+              key={item._id || item.id}
               item={item}
               onEdit={onEdit}
               onDelete={onDelete}
@@ -339,7 +446,7 @@ function MenuItemCard({ item, onEdit, onDelete, style }) {
       style={style}
     >
       <img
-        src={item.imageUrl}
+        src={item.image}
         alt={item.name}
         className="w-full h-40 object-cover"
         onError={(e) => {
@@ -348,13 +455,29 @@ function MenuItemCard({ item, onEdit, onDelete, style }) {
         }}
       />
       <div className="p-4">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-bold text-slate-800">{item.name}</h3>
           <span className="text-lg font-semibold text-indigo-600">
             ৳{item.price}
           </span>
         </div>
-        <p className="text-sm text-slate-600 mt-1 mb-4">{item.description}</p>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 mb-2">
+          <div>
+            <span className="font-medium">Category:</span> {item.category}
+          </div>
+          <div>
+            <span className="font-medium">Calories:</span> {item.calories || 'N/A'}
+          </div>
+        </div>
+        
+        <div className="mb-2">
+          <span className="text-xs font-medium text-slate-600">Allergens:</span>
+          <span className="text-xs text-slate-600 ml-1">{item.allergens}</span>
+        </div>
+        
+        <p className="text-sm text-slate-600 mb-4">{item.description}</p>
+        
         <div className="flex gap-2 justify-end">
           <button
             onClick={() => onEdit(item)}
@@ -364,7 +487,7 @@ function MenuItemCard({ item, onEdit, onDelete, style }) {
             <IconEdit />
           </button>
           <button
-            onClick={() => onDelete(item.id)}
+            onClick={() => onDelete(item._id || item.id)}
             className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 transition-colors"
             aria-label="Delete item"
           >
@@ -384,6 +507,7 @@ function MenuModal({
   onChange,
   isEditing,
   selectedDay,
+  isSubmitting,
 }) {
   // Add CSS for modal animations
   useEffect(() => {
@@ -423,8 +547,8 @@ function MenuModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative animate-modal-content"
-        onClick={(e) => e.stopPropagation()} // Prevent closing modal on content click
+        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto relative animate-modal-content"
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
@@ -449,7 +573,7 @@ function MenuModal({
               htmlFor="name"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
-              Item Name
+              Item Name *
             </label>
             <input
               type="text"
@@ -458,7 +582,7 @@ function MenuModal({
               value={formData.name}
               onChange={onChange}
               required
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-gray-600 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -468,7 +592,7 @@ function MenuModal({
                 htmlFor="price"
                 className="block text-sm font-medium text-slate-700 mb-1"
               >
-                Price (৳)
+                Price (৳) *
               </label>
               <input
                 type="number"
@@ -478,23 +602,44 @@ function MenuModal({
                 onChange={onChange}
                 required
                 min="0"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                step="0.01"
+                className="w-full px-3 text-gray-600 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
               <label
-                htmlFor="meal"
+                htmlFor="calories"
                 className="block text-sm font-medium text-slate-700 mb-1"
               >
-                Meal
+                Calories
+              </label>
+              <input
+                type="number"
+                id="calories"
+                name="calories"
+                value={formData.calories}
+                onChange={onChange}
+                min="0"
+                className="w-full px-3 text-gray-600 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="mealType"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
+                Meal Type *
               </label>
               <select
-                id="meal"
-                name="meal"
-                value={formData.meal}
+                id="mealType"
+                name="mealType"
+                value={formData.mealType}
                 onChange={onChange}
                 required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3 text-gray-600 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               >
                 {MEALS.map((meal) => (
                   <option key={meal} value={meal}>
@@ -503,6 +648,46 @@ function MenuModal({
                 ))}
               </select>
             </div>
+            <div>
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
+                Category *
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={onChange}
+                required
+                className="w-full px-3 text-gray-600 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              >
+                {CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="allergens"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              Allergens
+            </label>
+            <input
+              type="text"
+              id="allergens"
+              name="allergens"
+              value={formData.allergens}
+              onChange={onChange}
+              placeholder="e.g., Nuts, Dairy, Gluten"
+              className="w-full px-3 text-gray-600 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
           </div>
 
           <div>
@@ -518,24 +703,25 @@ function MenuModal({
               value={formData.description}
               onChange={onChange}
               rows="3"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-gray-600 px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             ></textarea>
           </div>
 
           <div>
             <label
-              htmlFor="imageUrl"
+              htmlFor="image"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
-              Image URL (Optional)
+              Image URL
             </label>
             <input
               type="text"
-              id="imageUrl"
-              name="imageUrl"
-              value={formData.imageUrl}
+              id="image"
+              name="image"
+              value={formData.image}
               onChange={onChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="https://example.com/image.jpg"
+              className="w-full text-gray-600 px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -543,15 +729,24 @@ function MenuModal({
             <button
               type="button"
               onClick={onClose}
-              className="py-2 px-4 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-colors"
+              disabled={isSubmitting}
+              className="py-2 px-4 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
+              disabled={isSubmitting}
+              className="py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              {isEditing ? "Save Changes" : "Add Item"}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  {isEditing ? "Saving..." : "Adding..."}
+                </>
+              ) : (
+                isEditing ? "Save Changes" : "Add Item"
+              )}
             </button>
           </div>
         </form>

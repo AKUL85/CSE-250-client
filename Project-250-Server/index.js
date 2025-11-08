@@ -11,6 +11,8 @@ const {
 } = require("./complain");
 const { router: laundryRouter, setLaundryCollections } = require("./laundry");
 const { router: rommsRouter, setRoomsCollection } = require("./rooms");
+const { router: menuRouter, setMenuCollection } = require("./menu");
+
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -50,16 +52,19 @@ async function connectDB() {
     seatApplicationCollection = db.collection("seatApplications");
     roomsCollection = db.collection("rooms");
     laundryCollection = db.collection("laundry");
+      menuCollection = db.collection("menu");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
+     setMenuCollection({ menuCollection });
 
     // Register routes
     app.use("/api", complainRouter);
     app.use("/api", laundryRouter);
     app.use("/api", rommsRouter);
+     app.use("/api", menuRouter);
 
     console.log("✅ Collections set successfully");
   } catch (error) {

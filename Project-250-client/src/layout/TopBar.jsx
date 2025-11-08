@@ -17,7 +17,7 @@ const TopBar = ({ onMenuClick }) => {
     name: "John Doe",
     email: "johndoe@example.com",
     avatar: "https://i.pravatar.cc/150?img=32",
-    role: "student",
+    role: "admin",
     walletBalance: 120.50
   };
 
