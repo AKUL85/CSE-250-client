@@ -35,8 +35,9 @@ const occupancyData = [
 const DashboardPage = () => {
   const { user } = useAuth();
   // const isStudent = user?.role === 'student';
-  const isStudent =true;
-  const kpis = isStudent ? mockDashboardKPIs.student : mockDashboardKPIs.admin;
+  // console.log(user);  // use it to debug student
+
+  const kpis = user.role === "student" ? mockDashboardKPIs.student : mockDashboardKPIs.admin;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -53,7 +54,7 @@ const DashboardPage = () => {
     visible: { opacity: 1, y: 0 },
   };
 
-  if (isStudent) {
+  if (user.role === "student") {
     return (
       <motion.div
         variants={containerVariants}
@@ -65,7 +66,7 @@ const DashboardPage = () => {
         <motion.div variants={itemVariants}>
           <div className="rounded-2xl p-8 text-white shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700">
             <h1 className="text-3xl font-bold mb-2 drop-shadow-sm">
-              Welcome back, {user?.name}! 👋
+              Welcome back, {user.displayName}! 👋
             </h1>
             <p className="text-white/90">
               Here's what's happening in your residential hall today.

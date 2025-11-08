@@ -1,47 +1,46 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import Swal from 'sweetalert2';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 import {
-  Menu, Search, Bell, User, LogOut,
-  Settings, CreditCard
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+  Menu,
+  Search,
+  Bell,
+  User,
+  LogOut,
+  Settings,
+  CreditCard,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const TopBar = ({ onMenuClick }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState(2); // Mock notification count
-  const { signOutUser } = useAuth()
-  // Mock user data (replace with real data later)
-  const user = {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    avatar: "https://i.pravatar.cc/150?img=32",
-    role: "admin",
-    walletBalance: 120.50
-  };
+  const { signOutUser } = useAuth();
+  const user = useAuth();
+  const navigate = useNavigate();
 
-const navigate=useNavigate();
+  // console.log(user); // uncomment it to debug user
 
   const logout = async () => {
     try {
       await signOutUser();
       await Swal.fire({
-        icon: 'success',
-        title: 'Signed out!',
-        text: 'You have been successfully signed out.',
+        icon: "success",
+        title: "Signed out!",
+        text: "You have been successfully signed out.",
         timer: 2000,
         showConfirmButton: false,
         toast: true,
-        position: 'top-end',
+        position: "top-end",
       });
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
       await Swal.fire({
-        icon: 'error',
-        title: 'Signout Failed',
-        text: error.message || 'Something went wrong. Please try again.',
-        confirmButtonColor: '#6C5CE7',
+        icon: "error",
+        title: "Signout Failed",
+        text: error.message || "Something went wrong. Please try again.",
+        confirmButtonColor: "#6C5CE7",
       });
     }
   };
@@ -89,12 +88,20 @@ const navigate=useNavigate();
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-2 p-1 rounded-full hover:bg-white/20 transition-colors"
           >
-            <img
-              src={user?.avatar}
-              alt={user?.name}
-              className="w-9 h-9 rounded-full border-2 border-white shadow-sm object-cover"
-            />
-            {user?.role === 'student' && user?.walletBalance !== undefined && (
+            {user?.user?.photoURL ? (
+              <img
+                src={user.user.photoURL}
+                alt={user.user.displayName}
+                className="w-9 h-9 rounded-full border-2 border-white shadow-sm object-cover"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full border-2 border-white shadow-sm flex items-center justify-center bg-gray-100">
+                <span className="text-green-600 font-bold text-lg">
+                  {user?.user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
+            )}
+            {user.role === "student" && user?.walletBalance !== undefined && (
               <span className="hidden sm:block text-sm font-semibold text-white">
                 ${user.walletBalance.toFixed(2)}
               </span>
@@ -116,8 +123,10 @@ const navigate=useNavigate();
               >
                 {/* User info in dropdown */}
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="font-semibold text-gray-900">{user?.name}</p>
-                  <p className="text-sm text-gray-500">{user?.email}</p>
+                  <p className="font-semibold text-gray-900">
+                    {user.user.displayName}
+                  </p>
+                  <p className="text-sm text-gray-500">{user.user.email}</p>
                 </div>
 
                 {/* Menu items in dropdown */}
@@ -130,7 +139,7 @@ const navigate=useNavigate();
                     <Settings className="w-4 h-4 text-gray-500" />
                     Settings
                   </button>
-                  {user?.role === 'student' && (
+                  {user.role === "student" && (
                     <button className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left transition-colors">
                       <CreditCard className="w-4 h-4 text-gray-500" />
                       Wallet

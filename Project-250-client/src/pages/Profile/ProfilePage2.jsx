@@ -23,6 +23,7 @@ const ProfilePage2 = () => {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  console.log(user);
 
   const {
     register,
@@ -32,9 +33,9 @@ const ProfilePage2 = () => {
   } = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.name || '',
-      phone: user?.phone || '',
-      emergencyContact: user?.emergencyContact || '',
+      name: user.displayName || '',
+      phone: user.phoneNumber || '',
+      emergencyContact: user.emergencyContact || 'N.A',
     },
   });
 

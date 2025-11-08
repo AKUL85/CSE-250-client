@@ -1,27 +1,30 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Utensils, ShoppingCart, Bed, MessageSquare, AlertTriangle, WashingMachine as Washing, Building, CreditCard, Users, Shield, BarChart3, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 // Mock useAuth hook for demonstration
-const useAuth = () => {
-  const mockUser = {
-    isAuthenticated: true,
-    user: {
-      id: '123',
-      name: 'Akul Biswas',
-      email: 'john.doe@example.com',
-      role: 'admin', // Change to 'admin' to test admin links
-      room: 'A-201',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop',
-    },
-  };
+// const useAuth = () => {
+//   const mockUser = {
+//     isAuthenticated: true,
+//     user: {
+//       id: '123',
+//       name: 'Akul Biswas',
+//       email: 'john.doe@example.com',
+//       role: 'student', // Change to 'admin' to test admin links
+//       room: 'A-201',
+//       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop',
+//     },
+//   };
 
-  return mockUser;
-};
+//   return mockUser;
+// };
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
+
+  // console.log(user); // use it to debug
   
   const studentLinks = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -75,7 +78,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         initial="closed"
         animate={isOpen ? "open" : "closed"}
         variants={sidebarVariants}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className="fixed inset-y-0 left-0 w-64 bg-white border-r border-zinc-200 z-50
                    lg:translate-x-0 lg:static transform shadow-xl lg:shadow-none"
       >
@@ -99,9 +102,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {links.map((link, index) => {
             const Icon = link.icon;
-            const isActive = location.pathname === link.to || 
-                           (link.to !== '/dashboard' && location.pathname.startsWith(link.to));
-            
+            const isActive =
+              location.pathname === link.to ||
+              (link.to !== "/dashboard" &&
+                location.pathname.startsWith(link.to));
+
             return (
               <motion.div
                 key={link.to}
@@ -114,20 +119,28 @@ const Sidebar = ({ isOpen, onClose }) => {
                   onClick={() => window.innerWidth < 1024 && onClose()}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden font-medium ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 transform scale-105'
-                      : 'text-zinc-700 hover:bg-zinc-100 hover:text-blue-600'
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 transform scale-105"
+                      : "text-zinc-700 hover:bg-zinc-100 hover:text-blue-600"
                   }`}
                 >
-                  <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-                    isActive ? 'text-white' : 'text-zinc-500 group-hover:text-blue-600'
-                  }`} />
+                  <Icon
+                    className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                      isActive
+                        ? "text-white"
+                        : "text-zinc-500 group-hover:text-blue-600"
+                    }`}
+                  />
                   <span className="font-medium text-sm">{link.label}</span>
-                  
+
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
                       className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg -z-10"
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
                 </NavLink>
@@ -138,17 +151,25 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <div className="p-4 border-t border-zinc-200">
           <div className="flex items-center gap-3 px-3 py-2">
-            <img
-              src={user?.avatar}
-              alt={user?.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-zinc-200"
-            />
+            {user?.user?.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-zinc-200"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full border-2 border-white shadow-sm flex items-center justify-center bg-gray-100">
+                <span className="text-blue-600 font-bold text-lg">
+                  {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-zinc-900 truncate">
-                {user?.name}
+                {user.displayName}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">
-                {user?.role === 'admin' ? 'Administrator' : `Room ${user?.room}`}
+                {user.role === "admin" ? "Administrator" : `Room ${user.room? user.room : "N/A"}`}
               </p>
             </div>
           </div>

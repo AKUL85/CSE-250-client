@@ -13,8 +13,11 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
           <div className="flex flex-col items-center">
             <div className="relative">
               <img
-                src={user?.avatar}
-                alt={user?.name}
+                src={
+                  user?.photoURL ||
+                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                }
+                alt={user?.displayName}
                 className="w-32 h-32 rounded-2xl object-cover shadow-lg border-2 border-zinc-200"
               />
               <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-md">
@@ -22,10 +25,10 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
               </div>
             </div>
             <Badge
-              variant={user?.status === 'active' ? 'success' : 'warning'}
+              variant={user?.status === "active" ? "success" : "warning"}
               className="mt-4"
             >
-              {user?.status === 'active' ? 'Active' : 'Inactive'}
+              {user?.status === "active" ? "Active" : "Inactive"}
             </Badge>
           </div>
 
@@ -38,7 +41,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 {isEditing ? (
                   <div>
                     <input
-                      {...register('name')}
+                      {...register("name")}
                       className="w-full px-4 py-3 border border-zinc-300 rounded-xl bg-white text-zinc-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     />
                     {errors.name && (
@@ -48,9 +51,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                     )}
                   </div>
                 ) : (
-                  <p className="text-zinc-900 font-medium">
-                    {user?.name}
-                  </p>
+                  <p className="text-zinc-900 font-medium">{user?.displayName}</p>
                 )}
               </div>
 
@@ -60,9 +61,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 </label>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-zinc-400" />
-                  <p className="text-zinc-900">
-                    {user?.email}
-                  </p>
+                  <p className="text-zinc-900">{user?.email}</p>
                 </div>
               </div>
 
@@ -73,7 +72,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 {isEditing ? (
                   <div>
                     <input
-                      {...register('phone')}
+                      {...register("phone")}
                       className="w-full px-4 py-3 border border-zinc-300 rounded-xl bg-white text-zinc-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     />
                     {errors.phone && (
@@ -85,9 +84,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 ) : (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-zinc-400" />
-                    <p className="text-zinc-900">
-                      {user?.phone}
-                    </p>
+                    <p className="text-zinc-900">{user?.phoneNumber ? user?.phoneNumber : "N/A"}</p>
                   </div>
                 )}
               </div>
@@ -98,9 +95,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 </label>
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-zinc-400" />
-                  <p className="text-zinc-900 font-mono">
-                    {user?.studentId}
-                  </p>
+                  <p className="text-zinc-900 font-mono">{user?.studentId}</p>
                 </div>
               </div>
 
@@ -123,7 +118,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 {isEditing ? (
                   <div>
                     <input
-                      {...register('emergencyContact')}
+                      {...register("emergencyContact")}
                       className="w-full px-4 py-3 border border-zinc-300 rounded-xl bg-white text-zinc-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     />
                     {errors.emergencyContact && (
@@ -135,9 +130,7 @@ const ProfileCard = ({ user, isEditing, register, errors, itemVariants }) => {
                 ) : (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-zinc-400" />
-                    <p className="text-zinc-900">
-                      {user?.emergencyContact}
-                    </p>
+                    <p className="text-zinc-900">{user?.emergencyContact}</p>
                   </div>
                 )}
               </div>
