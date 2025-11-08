@@ -1,7 +1,4 @@
-import {
-  createBrowserRouter,
-  Navigate,
-} from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import AppShell from "../layout/AppShell";
 import LoginPage from "../pages/auth/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
@@ -18,6 +15,7 @@ import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
 import ProtectedRoute from "../pages/auth/ProtectedRoute";
 import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
 import ComplainForm from "../pages/complains/ComplainForm";
+import MannageFood from "../pages/food/ManageFood";
 
 export const router = createBrowserRouter([
   {
@@ -27,7 +25,9 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <ProtectedRoute>      {/* ✅ Protect everything inside AppShell */}
+      <ProtectedRoute>
+        {" "}
+        {/* ✅ Protect everything inside AppShell */}
         <AppShell />
       </ProtectedRoute>
     ),
@@ -47,9 +47,15 @@ export const router = createBrowserRouter([
       {
         path: "/admin/register-student",
         element: <RegisterStudentPage />,
-      },{
-        path:"/complain-form", element:<ComplainForm></ComplainForm>
-      }
-    ], 
+      },
+      {
+        path: "/complain-form",
+        element: <ComplainForm></ComplainForm>,
+      },
+      {
+        path: "/admin/menus",
+        element: <MannageFood />,
+      },
+    ],
   },
 ]);
