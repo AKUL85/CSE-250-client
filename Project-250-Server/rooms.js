@@ -25,6 +25,32 @@ router.get("/rooms/all", async (req, res) => {
   }
 });
 
+// 🔹 Get all vacant rooms
+router.get("/rooms/vacant-seat", async (req, res) => {
+  try {
+    console.log("we");
+    const rooms = await roomsCollection.find().toArray();
+
+    let totalVacantSeats = 0;
+
+    rooms.forEach((room) => {
+      if (room.status === "under_maintenance") return; // skip maintenance rooms
+
+      // For normal rooms, calculate vacant seats
+      const occupiedSeats = room.occupants ? room.occupants.length : 0;
+      const vacantSeats = room.capacity - occupiedSeats;
+
+      if (vacantSeats > 0) totalVacantSeats += vacantSeats;
+    });
+
+    res.status(200).json({ totalVacantSeats });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to calculate vacant seats", error: error.message });
+  }
+});
+
+
 // ✅ Add new room
 router.post("/rooms/add", async (req, res) => {
   try {
@@ -83,6 +109,7 @@ router.post("/rooms/add", async (req, res) => {
   }
 });
 
+
 // DELETE: Remove a room by ID
 router.delete("/rooms/:id", async (req, res) => {
   const { id } = req.params;
@@ -107,5 +134,6 @@ router.delete("/rooms/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete room" });
   }
 });
+
 
 module.exports = { router, setRoomsCollection };

@@ -40,6 +40,7 @@ let complainCollection;
 let seatApplicationCollection;
 let roomsCollection;
 let laundryCollection;
+let menuCollection;
 
 async function connectDB() {
   try {
