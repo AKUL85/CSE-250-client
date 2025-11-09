@@ -52,14 +52,14 @@ export const mockMenuItems = [
   {
     id: '1',
     day: 'monday',
-    mealType: 'breakfast',
-    name: 'Pancakes with Syrup',
-    category: 'breakfast',
+    mealType: 'lunch',
+    name: 'rui mas',
+    category: 'lunch',
     allergens: ['gluten', 'dairy'],
     calories: 350,
-    price: 8.50,
-    description: 'Fluffy pancakes served with maple syrup and butter',
-    image: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=400',
+    price: 40,
+    description: 'Rui Fish Served with rice and vehetables Curry',
+    image: 'https://i.postimg.cc/SKncq8dT/rui-macher-jhol-aloo-diyerohu-fish-gravy-with-potatoes-recipe-main-photo.jpg'
   },
   {
     id: '2',

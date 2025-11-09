@@ -12,6 +12,7 @@ import Badge from '../components/ui/Badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import dayjs from 'dayjs';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const revenueData = [
   { month: 'Jan', revenue: 45000 },
@@ -120,8 +121,9 @@ const DashboardPage = () => {
                       <ShoppingCart className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
+                      <Link to="/food/menu">
                       <p className="font-medium text-zinc-900">Order Food</p>
-                      <p className="text-sm text-zinc-500">Browse today's menu</p>
+                      <p className="text-sm text-zinc-500">Browse today's menu</p></Link>
                     </div>
                   </div>
                 </button>
@@ -131,8 +133,10 @@ const DashboardPage = () => {
                       <Clock className="w-4 h-4 text-indigo-600" />
                     </div>
                     <div>
+                      <Link to="/laundry">
                       <p className="font-medium text-zinc-900">Book Laundry</p>
                       <p className="text-sm text-zinc-500">Reserve a time slot</p>
+                      </Link>
                     </div>
                   </div>
                 </button>
@@ -142,8 +146,10 @@ const DashboardPage = () => {
                       <AlertTriangle className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
+                     <Link to="/complaints">
                       <p className="font-medium text-zinc-900">File Complaint</p>
                       <p className="text-sm text-zinc-500">Report an issue</p>
+                     </Link>
                     </div>
                   </div>
                 </button>

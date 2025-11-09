@@ -56,11 +56,11 @@ const LaundryTimeSlotGrid = ({ selectedDate, handleBookSlot }) => {
     const now = dayjs();
     const slotStart = dayjs(slot.startAt);
     if (slotStart.isBefore(now, "minute")) {
-      return "unavailable"; // Slot time already passed
+      return "unavailable"; 
     } else if (slot.userId) {
-      return "booked"; // Someone has booked it
+      return "booked"; 
     } else {
-      return "available"; // Free to book
+      return "available"; 
     }
   };
 
