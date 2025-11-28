@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const admin = require("firebase-admin");
 const multer = require("multer");
 require("dotenv").config();
 
@@ -13,17 +12,11 @@ const { router: laundryRouter, setLaundryCollections } = require("./laundry");
 const { router: rommsRouter, setRoomsCollection } = require("./rooms");
 const { router: menuRouter, setMenuCollection } = require("./menu");
 
-
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
-const serviceAccount = require("./serviceAccountKey.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 // 🔹 MongoDB Setup
 const uri = `mongodb+srv://${process.env.USERID}:${process.env.PASSWORD}@cluster0.rdbtijm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -52,27 +45,25 @@ async function connectDB() {
     seatApplicationCollection = db.collection("seatApplications");
     roomsCollection = db.collection("rooms");
     laundryCollection = db.collection("laundry");
-      menuCollection = db.collection("menu");
+    menuCollection = db.collection("menu");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
-     setMenuCollection({ menuCollection });
+    setMenuCollection({ menuCollection });
 
     // Register routes
     app.use("/api", complainRouter);
     app.use("/api", laundryRouter);
     app.use("/api", rommsRouter);
-     app.use("/api", menuRouter);
+    app.use("/api", menuRouter);
 
     console.log("✅ Collections set successfully");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
   }
 }
-
-connectDB();
 
 // 🔹 Multer Configuration for Seat Application
 const storage = multer.memoryStorage();
@@ -155,13 +146,6 @@ app.post("/register-student", async (req, res) => {
         .json({ message: "Name, email, and password are required" });
     }
 
-    // ✅ Step 1: Create Firebase user
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: name,
-    });
-
     const assignedRole = role || "student";
     await admin
       .auth()
@@ -240,13 +224,19 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-
-
 // 🔹 Root Route
 app.get("/", (req, res) => {
   res.send("✅ Backend is running!");
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
+connectDB()
+.then(()=>{
+    console.log("connected to DB");
+    app.listen(port,()=>{
+        console.log(`listening to port ${port}`);
+    })
+})
+.catch((err)=>{
+    console.log("error occurred.");
+    console.log(err);
 });
