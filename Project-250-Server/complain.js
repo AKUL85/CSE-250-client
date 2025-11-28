@@ -64,6 +64,22 @@ router.get("/complains", async (req, res) => {
   }
 });
 
+// GET: Fetch complaints with user id
+router.get("/complains/my-complains/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    if(!complainCollection) return res.status(500).json({ message: "Database not initialized"});
+    
+    const complains = await complainCollection.find({ userId: userId }).toArray();
+
+    // if(!complains) res.status(204).json({ message: "No complaint found"});
+    res.status(200).json(complains);
+  } catch (err) {
+    
+  }
+})
+
 // GET: Fetch complaints with ID
 router.get("/complains/:_id", async (req, res) => {
   const { _id } = req.params;
