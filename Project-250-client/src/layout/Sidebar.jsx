@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/admin/users', icon: Users, label: 'Manage Users' },
     { to: '/admin/rooms', icon: Building, label: 'Manage Rooms' },
     { to: '/admin/menus', icon: Utensils, label: 'Manage Menus' },
-    { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
+    // { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { to: '/complaints', icon: AlertTriangle, label: 'Complaints' },
     { to : '/admin/register-student', icon: Shield, label: 'Register Student'}
 

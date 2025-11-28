@@ -28,7 +28,6 @@ router.get("/rooms/all", async (req, res) => {
 // 🔹 Get all vacant rooms
 router.get("/rooms/vacant-seat", async (req, res) => {
   try {
-    console.log("we");
     const rooms = await roomsCollection.find().toArray();
 
     let totalVacantSeats = 0;

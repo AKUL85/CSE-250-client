@@ -45,7 +45,7 @@ let menuCollection;
 async function connectDB() {
   try {
     await client.connect();
-    console.log("✅ Connected to MongoDB");
+    console.log("✅Connected to MongoDB");
 
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
