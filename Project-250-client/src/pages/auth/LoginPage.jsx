@@ -40,11 +40,27 @@ const LoginPage = () => {
     return <Navigate to={from} replace />;
   }
 
+  const login = async (email,password)=>{
+    fetch("http://localhost:5000/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+})
+  .then(res => res.json())
+  .then(data => {
+      if (data.token) {
+          localStorage.setItem("token", data.token);
+          console.log("Token saved:", data.token);
+      }
+  });
+  }
+
   // Submit handler
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      await signInWithEmailPass(data.email, data.password);
+      // await signInWithEmailPass(data.email, data.password);
+      await login(data.email,data.password);
       await Swal.fire({
         icon: 'success',
         title: 'Welcome back!',

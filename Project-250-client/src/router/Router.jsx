@@ -16,6 +16,7 @@ import ProtectedRoute from "../pages/auth/ProtectedRoute";
 import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
 import ComplainForm from "../pages/complains/ComplainForm";
 import MannageFood from "../pages/food/ManageFood";
+import SeatApplications from "../pages/admin/SeatApplications";
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
         path: "/admin/menus",
         element: <MannageFood />,
       },
+      {
+        path: "/admin/seat-applications",
+        element: <SeatApplications />
+      }
     ],
   },
 ]);

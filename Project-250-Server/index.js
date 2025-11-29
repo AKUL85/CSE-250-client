@@ -1,9 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const admin = require("firebase-admin");
 const multer = require("multer");
 require("dotenv").config();
+const jwt = require('jsonwebtoken');
+const generateToken = require('./generateToken');
+
 
 const {
   router: complainRouter,
@@ -13,17 +15,11 @@ const { router: laundryRouter, setLaundryCollections } = require("./laundry");
 const { router: rommsRouter, setRoomsCollection } = require("./rooms");
 const { router: menuRouter, setMenuCollection } = require("./menu");
 
-
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
-const serviceAccount = require("./serviceAccountKey.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 // 🔹 MongoDB Setup
 const uri = `mongodb+srv://${process.env.USERID}:${process.env.PASSWORD}@cluster0.rdbtijm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -40,11 +36,16 @@ let complainCollection;
 let seatApplicationCollection;
 let roomsCollection;
 let laundryCollection;
+let menuCollection;
 
 async function connectDB() {
   try {
     await client.connect();
+<<<<<<< HEAD
     console.log(" Connected to MongoDB");
+=======
+    console.log("✅Connected to MongoDB");
+>>>>>>> 38d03fe1dd0f3b60aadd4e4e76f7b8b4471618f5
 
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
@@ -52,19 +53,20 @@ async function connectDB() {
     seatApplicationCollection = db.collection("seatApplications");
     roomsCollection = db.collection("rooms");
     laundryCollection = db.collection("laundry");
-      menuCollection = db.collection("menu");
+    menuCollection = db.collection("menu");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
+<<<<<<< HEAD
      setMenuCollection({ menuCollection });
 []
+=======
+    setMenuCollection({ menuCollection });
+
+>>>>>>> 38d03fe1dd0f3b60aadd4e4e76f7b8b4471618f5
     // Register routes
-    app.use("/api", complainRouter);
-    app.use("/api", laundryRouter);
-    app.use("/api", rommsRouter);
-     app.use("/api", menuRouter);
 
     console.log("✅ Collections set successfully");
   } catch (error) {
@@ -72,11 +74,31 @@ async function connectDB() {
   }
 }
 
-connectDB();
+app.use("/api/laundry", laundryRouter);
+app.use("/api/rooms", rommsRouter);
+app.use("/api/menu", menuRouter);
+app.use("/api", complainRouter);
 
 // 🔹 Multer Configuration for Seat Application
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+app.post('/login', async (req,res)=>{
+  try{
+    const {email, password} = req.body;
+    const user = await usersCollection.findOne({email});
+    if(user && user.password === password){
+      const token = generateToken({id:user._id,role:user.role});
+      res.status(200).json({token:token});
+    }
+    else{
+      res.status(400).json({Message: "Invalid Credentials"});
+    }
+  }
+  catch(err){
+    res.status(500).json({message: err.message});
+  }
+})
 
 // 🔹 Seat Application Routes
 app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
@@ -143,6 +165,31 @@ app.get("/seat-applications", async (req, res) => {
   }
 });
 
+app.post("/register-student", async (req, res,next) =>{
+  let token;
+    if(req.headers.authorization
+        && req.headers.authorization.startsWith('Bearer')
+    ){
+        try{
+            token = req.headers.authorization.split(' ')[1];
+            const payload = jwt.verify(token, process.env.JWT_KEY);
+            const role = payload.role;
+            
+            // req.user = await User.findById(payload.id).select('-password');
+            if(role === "admin")next();
+            else res.status(400).json({Message:"Not Admin"});
+        }
+        catch(err){
+          res.status(400).json({Message: "Invalid token"});
+        }
+      }
+      else{
+        res.status(400).json({Message: "No token"});
+      }
+
+
+});
+
 // 🔹 Student Registration
 app.post("/register-student", async (req, res) => {
   try {
@@ -155,17 +202,7 @@ app.post("/register-student", async (req, res) => {
         .json({ message: "Name, email, and password are required" });
     }
 
-    // ✅ Step 1: Create Firebase user
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: name,
-    });
-
     const assignedRole = role || "student";
-    await admin
-      .auth()
-      .setCustomUserClaims(userRecord.uid, { role: assignedRole });
 
     const newUser = {
       uid: userRecord.uid,
@@ -188,7 +225,6 @@ app.post("/register-student", async (req, res) => {
     } catch (mongoErr) {
       // 🚨 Step 3: Rollback Firebase user if MongoDB insert fails
       console.error("MongoDB insertion failed:", mongoErr);
-      await admin.auth().deleteUser(userRecord.uid);
       return res
         .status(500)
         .json({ message: "Failed to save user data. User rolled back." });
@@ -200,11 +236,6 @@ app.post("/register-student", async (req, res) => {
     });
   } catch (error) {
     console.error("Error registering student:", error);
-
-    // If Firebase creation failed because user already exists
-    if (error.code === "auth/email-already-exists") {
-      return res.status(400).json({ message: "Email already registered" });
-    }
 
     res
       .status(500)
@@ -240,13 +271,19 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-
-
 // 🔹 Root Route
 app.get("/", (req, res) => {
   res.send("✅ Backend is running!");
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
+connectDB()
+.then(()=>{
+    console.log("connected to DB");
+    app.listen(port,()=>{
+        console.log(`listening to port ${port}`);
+    })
+})
+.catch((err)=>{
+    console.log("error occurred.");
+    console.log(err);
 });
