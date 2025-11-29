@@ -47,7 +47,7 @@ function AuthProvider({ children }) {
         // Attach role to user object for easy access
         // currentUser.role = idTokenResult.claims.role || null;
         currentUser.role = "admin"
-        // currentUser.role = "student"
+        currentUser.role = "student"
         // console.log(currentUser);
 
         setUser(currentUser);

@@ -20,12 +20,15 @@ const ComplainPage = () => {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/complains");
+        const userId = "692a2de34367bd7efe8020ef";
+        const res = await fetch(
+          `http://localhost:4000/api/complains/my-complains/${userId}`
+        );
         if (!res.ok) throw new Error("Failed to fetch complaints");
         const data = await res.json();
         setComplaints(data);
       } catch (err) {
-        console.error("❌ Error fetching complaints:", err);
+        console.error("Err    const user = await or fetching complaints:", err);
         setError(err.message);
       } finally {
         setLoading(false);

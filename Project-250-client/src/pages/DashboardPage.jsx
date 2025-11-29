@@ -41,13 +41,13 @@ const revenueData = [
 ];
 
 const occupancyData = [
-  { day: "Mon", occupancy: 85 },
-  { day: "Tue", occupancy: 88 },
-  { day: "Wed", occupancy: 82 },
-  { day: "Thu", occupancy: 90 },
-  { day: "Fri", occupancy: 85 },
-  { day: "Sat", occupancy: 78 },
-  { day: "Sun", occupancy: 80 },
+  { day: "2019", occupancy: 85 },
+  { day: "2020", occupancy: 88 },
+  { day: "2021", occupancy: 82 },
+  { day: "2022", occupancy: 90 },
+  { day: "2023", occupancy: 85 },
+  { day: "2024", occupancy: 78 },
+  { day: "2025", occupancy: 80 },
 ];
 
 const DashboardPage = () => {
@@ -377,7 +377,7 @@ const DashboardPage = () => {
           <motion.div variants={itemVariants}>
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-zinc-900">
-                Weekly Occupancy
+                Yearly Occupancy
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={occupancyData}>
