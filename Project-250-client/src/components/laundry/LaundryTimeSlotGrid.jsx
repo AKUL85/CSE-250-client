@@ -1,18 +1,29 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import { mockLaundrySlots } from "../../data/mockData";
 import Card from "../ui/Card";
 
-const Legend = ({ color, label }) => (
-  <div className="flex items-center gap-2">
-    <div className={`w-4 h-4 ${color} rounded`}></div>
-    <span className="text-gray-500">{label}</span>
-  </div>
-);
-
-const LaundryTimeSlotGrid = ({ selectedDate, handleBookSlot, currentBooking }) => {
+const LaundryTimeSlotGrid = ({ selectedDate, handleBookSlot }) => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const timeSlots = [
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+    "20:00",
+    "21:00",
+  ];
+  const machines = ["M001", "M002", "M003", "M004"];
 
   // ✅ Fetch slots from API when selectedDate changes
   useEffect(() => {
@@ -34,7 +45,30 @@ const LaundryTimeSlotGrid = ({ selectedDate, handleBookSlot, currentBooking }) =
       }
     };
     fetchSlots();
-  }, [selectedDate, currentBooking]);
+  }, [selectedDate]);
+
+  const getSlotStatus = (time, machine) => {
+    const slot = slots.find(
+      (s) =>
+        dayjs(s.startAt).format("HH:mm") === time && s.machineId === machine
+    );
+    console.log(slot);
+    const now = dayjs();
+    const slotStart = dayjs(slot.startAt);
+    if (slotStart.isBefore(now, "minute")) {
+      return "unavailable"; 
+    } else if (slot.userId) {
+      return "booked"; 
+    } else {
+      return "available"; 
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">Loading slots...</div>
+    );
+  }
 
   return (
     <motion.div
@@ -59,100 +93,80 @@ const LaundryTimeSlotGrid = ({ selectedDate, handleBookSlot, currentBooking }) =
 
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
-            {/* Header */}
+            {/* header */}
             <div className="grid grid-cols-5 gap-2 mb-4">
               <div className="p-3 text-center font-medium text-gray-600">
                 Time
               </div>
-              <div className="p-3 text-center font-medium text-gray-800 bg-gray-100 rounded-lg">
-                M001
-              </div>
-              <div className="p-3 text-center font-medium text-gray-800 bg-gray-100 rounded-lg">
-                M002
-              </div>
-              <div className="p-3 text-center font-medium text-gray-800 bg-gray-100 rounded-lg">
-                M003
-              </div>
-              <div className="p-3 text-center font-medium text-gray-800 bg-gray-100 rounded-lg">
-                M004
-              </div>
+              {machines.map((machine) => (
+                <div
+                  key={machine}
+                  className="p-3 text-center font-medium text-gray-800 bg-gray-100 rounded-lg"
+                >
+                  {machine}
+                </div>
+              ))}
             </div>
 
-            {/* slots[] */}
+            {/* grid */}
             <div className="space-y-2">
-              {Array.from({ length: slots.length / 4 }).map((_, rowIndex) => {
-                const rowSlots = slots.slice(rowIndex * 4, rowIndex * 4 + 4);
-                const rowTime = dayjs(rowSlots[0].startAt).format("HH:mm");
-
-                return (
-                  <motion.div
-                    key={rowIndex}
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
-                    className="grid grid-cols-5 gap-2"
-                  >
-                    {/* Time Column */}
-                    <div className="p-3 text-center font-medium text-gray-600">
-                      {rowTime}
-                    </div>
-
-                    {/* Four machines */}
-                    {rowSlots.map((slot) => {
-                      const now = dayjs();
-                      const slotStart = dayjs(slot.startAt);
-
-                      let status = "available";
-                      if (slotStart.isBefore(now, "minute"))
-                        status = "unavailable";
-                      else if (slot.userId) status = "booked";
-
-                      return (
-                        <motion.button
-                          key={slot._id}
-                          whileHover={{
-                            scale: status === "available" ? 1.02 : 1,
-                          }}
-                          whileTap={{
-                            scale: status === "available" ? 0.98 : 1,
-                          }}
-                          onClick={() =>
-                            status === "available" &&
-                            handleBookSlot(
-                              dayjs(slot.startAt).format("HH:mm"),
-                              slot.machineId
-                            )
-                          }
-                          disabled={status !== "available"}
-                          className={`p-3 rounded-lg text-sm font-medium transition-all ${
-                            status === "available"
-                              ? "bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
-                              : status === "booked"
-                              ? "bg-yellow-100 text-yellow-800 cursor-not-allowed"
-                              : "bg-gray-200 text-red-800 cursor-not-allowed"
-                          }`}
-                        >
-                          {status === "available"
-                            ? "Book"
+              {timeSlots.map((time) => (
+                <motion.div
+                  key={time}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                  className="grid grid-cols-5 gap-2"
+                >
+                  <div className="p-3 text-center font-medium text-gray-600">
+                    {time}
+                  </div>
+                  {machines.map((machine) => {
+                    const status = getSlotStatus(time, machine);
+                    return (
+                      <motion.button
+                        key={`${time}-${machine}`}
+                        whileHover={{
+                          scale: status === "available" ? 1.02 : 1,
+                        }}
+                        whileTap={{ scale: status === "available" ? 0.98 : 1 }}
+                        onClick={() =>
+                          status === "available" &&
+                          handleBookSlot(time, machine)
+                        }
+                        disabled={status !== "available"}
+                        className={`p-3 rounded-lg text-sm font-medium transition-all ${
+                          status === "available"
+                            ? "bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                             : status === "booked"
-                            ? "Booked"
-                            : "N/A"}
-                        </motion.button>
-                      );
-                    })}
-                  </motion.div>
-                );
-              })}
+                            ? "bg-yellow-100 text-yellow-800 cursor-not-allowed"
+                            : "bg-gray-200 text-red-800 cursor-not-allowed"
+                        }`}
+                      >
+                        {status === "available"
+                          ? "Book"
+                          : status === "booked"
+                          ? "Booked"
+                          : "N/A"}
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
       </Card>
     </motion.div>
   );
-
 };
 
-
+const Legend = ({ color, label }) => (
+  <div className="flex items-center gap-2">
+    <div className={`w-4 h-4 ${color} rounded`}></div>
+    <span className="text-gray-500">{label}</span>
+  </div>
+);
 
 export default LaundryTimeSlotGrid;
