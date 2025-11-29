@@ -3,23 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Utensils, ShoppingCart, Bed, MessageSquare, AlertTriangle, WashingMachine as Washing, Building, CreditCard, Users, Shield, BarChart3, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-// Mock useAuth hook for demonstration
-// const useAuth = () => {
-//   const mockUser = {
-//     isAuthenticated: true,
-//     user: {
-//       id: '123',
-//       name: 'Akul Biswas',
-//       email: 'john.doe@example.com',
-//       role: 'student', // Change to 'admin' to test admin links
-//       room: 'A-201',
-//       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop',
-//     },
-//   };
-
-//   return mockUser;
-// };
-
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
@@ -88,7 +71,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold  text-lg text-zinc-900">
-              Student Nest
+              {user?.role === 'admin' ? "Admin Dashboard" : "Student Nest" }
             </span>
           </div>
           <button
