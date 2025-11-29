@@ -59,13 +59,8 @@ async function connectDB() {
     setComplainCollections({ complainCollection });
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
-<<<<<<< HEAD
-     setMenuCollection({ menuCollection });
-[]
-=======
     setMenuCollection({ menuCollection });
 
->>>>>>> 38d03fe1dd0f3b60aadd4e4e76f7b8b4471618f5
     // Register routes
 
     console.log("✅ Collections set successfully");
