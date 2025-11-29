@@ -44,7 +44,7 @@ let laundryCollection;
 async function connectDB() {
   try {
     await client.connect();
-    console.log("✅ Connected to MongoDB");
+    console.log(" Connected to MongoDB");
 
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
@@ -59,7 +59,7 @@ async function connectDB() {
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
      setMenuCollection({ menuCollection });
-
+[]
     // Register routes
     app.use("/api", complainRouter);
     app.use("/api", laundryRouter);
