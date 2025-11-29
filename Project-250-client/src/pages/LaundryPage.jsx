@@ -8,10 +8,12 @@ import LaundryTimeSlotGrid from "../components/laundry/LaundryTimeSlotGrid";
 import LaundryQRScannerModal from "../components/laundry/LaundryQRScannerModal";
 
 const LaundryPage = () => {
+  const userId = "692a2de34367bd7efe8020ef";
   const [selectedDate, setSelectedDate] = useState(
     dayjs().format("YYYY-MM-DD")
   );
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState([]);
 
   const handleBookSlot = async (time, machineId) => {
     const startAt = time;
@@ -38,12 +40,14 @@ const LaundryPage = () => {
             date: dayjs(selectedDate).format("YYYY-MM-DD"),
             time, // e.g. "10:00 AM"
             machineId, // e.g. "M001"
-            userId: "12345", // replace with logged-in user ID (if available)
+            userId: userId, // replace with logged-in user ID (if available)
           }),
         });
 
         if (!res.ok) throw new Error("Failed to book slot");
         const data = await res.json();
+        console.log(data);
+        setCurrentBooking(prev => [...prev, data.slot])
 
         await Swal.fire({
           icon: "success",
@@ -55,8 +59,6 @@ const LaundryPage = () => {
           position: "top-end",
         });
 
-        // 🔄 Optionally re-fetch slots to update the UI
-        // fetchSlots(); // only if `fetchSlots` is accessible here
       } catch (error) {
         console.error("Error booking laundry slot:", error);
         Swal.fire("Error", "Failed to book slot. Please try again.", "error");
@@ -95,10 +97,15 @@ const LaundryPage = () => {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
       />
-      <LaundryCurrentBookings handleStartMachine={handleStartMachine} />
+      <LaundryCurrentBookings
+        currentBooking={currentBooking}
+        setCurrentBooking={setCurrentBooking}
+        handleStartMachine={handleStartMachine}
+      />
       <LaundryTimeSlotGrid
         selectedDate={selectedDate}
         handleBookSlot={handleBookSlot}
+        currentBooking={currentBooking}
       />
       {showQRScanner && (
         <LaundryQRScannerModal setShowQRScanner={setShowQRScanner} />

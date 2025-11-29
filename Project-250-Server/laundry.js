@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const dayjs = require("dayjs");
+const { messaging } = require("firebase-admin");
 
 let laundryCollection;
 
@@ -42,11 +43,11 @@ async function generateLaundrySlots(date) {
         machineId,
         startAt: startAt.toISOString(),
         endAt: endAt.toISOString(),
-        userId: null, // booked by - initially null
+        userId: "", // booked by - initially null
         status: "available",
       });
 
-      console.log("inserting slot:", customId);
+      // console.log("inserting slot:", customId); // debug
     }
   }
 
@@ -59,7 +60,7 @@ async function generateLaundrySlots(date) {
   }
 }
 
-// ✅ GET slots for a given date (auto-create if not exist)
+// GET slots for a given date (auto-create if not exist)
 router.get("/laundry/slots", async (req, res) => {
   try {
     const { date } = req.query;
@@ -99,7 +100,7 @@ router.get("/laundry/slots", async (req, res) => {
   }
 });
 
-// ✅ POST book a slot
+// POST book a slot
 router.post("/laundry/book", async (req, res) => {
   try {
     const { date, time, machineId, userId } = req.body;
@@ -108,14 +109,16 @@ router.post("/laundry/book", async (req, res) => {
 
     // Validate required fields
     if (!date || !time || !machineId || !userId) {
-      return res.status(400).json({ error: "Missing required fields: date, time, machineId, userId" });
+      return res.status(400).json({
+        error: "Missing required fields: date, time, machineId, userId",
+      });
     }
 
     // Convert time "08:00" to time range "T08-09"
-    const hour = time.split(':')[0]; // "08"
-    const nextHour = String(parseInt(hour) + 1).padStart(2, '0'); // "09"
+    const hour = time.split(":")[0]; // "08"
+    const nextHour = String(parseInt(hour) + 1).padStart(2, "0"); // "09"
     const timeRange = `T${hour}-${nextHour}`;
-    
+
     // Construct the _id to find
     const slotId = `${date}_${timeRange}_${machineId}`;
     console.log("Looking for slot:", slotId);
@@ -134,17 +137,19 @@ router.post("/laundry/book", async (req, res) => {
 
     // Check if slot status is available
     if (slot.status !== "available") {
-      return res.status(409).json({ error: "Slot is not available for booking" });
+      return res
+        .status(409)
+        .json({ error: "Slot is not available for booking" });
     }
 
     // Book the slot
     const result = await laundryCollection.updateOne(
       { _id: slotId },
-      { 
-        $set: { 
+      {
+        $set: {
           userId: userId,
-          status: "booked"
-        } 
+          status: "booked",
+        },
       }
     );
 
@@ -153,20 +158,43 @@ router.post("/laundry/book", async (req, res) => {
     }
 
     console.log(`✅ Slot booked: ${slotId} by user ${userId}`);
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Slot booked successfully",
       slot: {
         _id: slotId,
         date,
         machineId,
-        time: `${time}-${nextHour}:00`, // Return full time range for clarity
-        userId
-      }
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        userId,
+        status: "booked",
+      },
     });
-
   } catch (error) {
     console.error("❌ Error booking slot:", error);
     res.status(500).json({ error: "Failed to book slot" });
+  }
+});
+
+// GET: get users booked laundry
+router.get("/laundry/booked", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    if (!laundryCollection)
+      return res.status(500).json({ message: "Database not initialized!" });
+    // if (!ObjectId.isValid(userId)) {
+    //   return res.status(400).json({ error: "Invalid userId" });
+    // }
+
+    const bookedSlots = await laundryCollection
+      .find({ userId: userId })
+      .toArray();
+
+    res.status(200).json(bookedSlots);
+  } catch (err) {
+    console.log("Error finding booked slots: ", err);
+    res.status(500).json({ message: "Server error " });
   }
 });
 

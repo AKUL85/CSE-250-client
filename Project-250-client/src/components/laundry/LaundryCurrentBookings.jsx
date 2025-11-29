@@ -4,26 +4,64 @@ import dayjs from "dayjs";
 import { mockLaundrySlots } from "../../data/mockData";
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
+import { useEffect } from "react";
 
- 
-const LaundryCurrentBookings = ({ handleStartMachine }) => {
-  const userBookings = mockLaundrySlots.filter(slot => slot.userId === "1");
+const LaundryCurrentBookings = ({
+  currentBooking,
+  setCurrentBooking,
+  handleStartMachine,
+}) => {
+  const userBookings = mockLaundrySlots.filter((slot) => slot.userId === "1");
+  useEffect(() => {
+    const userId = "692a2de34367bd7efe8020ef";
+    (async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/laundry/booked?userId=${userId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const data = await response.json();
+        console.log(data);
+        setCurrentBooking(data);
+      } catch (err) {
+        console.error("Error:", err.message);
+      }
+    })();
+  }, []);
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Card className="p-6 bg-white shadow-md rounded-xl">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Your Bookings</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Your Bookings
+        </h2>
         <div className="space-y-3">
-          {userBookings.map((slot) => (
-            <div key={slot.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+          {currentBooking.map((slot) => (
+            <div
+              key={slot.id}
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
                   <Washing className="w-6 h-6 text-indigo-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-800">Machine {slot.machineId}</p>
+                  <p className="font-medium text-gray-800">
+                    Machine {slot.machineId}
+                  </p>
                   <p className="text-sm text-gray-500">
-                    {dayjs(slot.startAt).format("MMM D, YYYY h:mm A")} - {dayjs(slot.endAt).format("h:mm A")}
+                    {dayjs(slot.startAt).format("MMM D, YYYY h:mm A")} -{" "}
+                    {dayjs(slot.endAt).format("h:mm A")}
                   </p>
                 </div>
               </div>
@@ -32,7 +70,11 @@ const LaundryCurrentBookings = ({ handleStartMachine }) => {
                   variant={slot.status === "booked" ? "warning" : "success"}
                   className="flex items-center gap-1"
                 >
-                  {slot.status === "booked" ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                  {slot.status === "booked" ? (
+                    <Clock className="w-3 h-3" />
+                  ) : (
+                    <CheckCircle className="w-3 h-3" />
+                  )}
                   {slot.status}
                 </Badge>
                 {slot.status === "booked" && (
@@ -52,7 +94,9 @@ const LaundryCurrentBookings = ({ handleStartMachine }) => {
           {userBookings.length === 0 && (
             <div className="text-center py-8">
               <Washing className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">No bookings found. Book a slot below.</p>
+              <p className="text-gray-500">
+                No bookings found. Book a slot below.
+              </p>
             </div>
           )}
         </div>
