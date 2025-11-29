@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { WashingMachine as Washing, Clock, CheckCircle } from "lucide-react";
 import dayjs from "dayjs";
-import { mockLaundrySlots } from "../../data/mockData";
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
 import { useEffect } from "react";
@@ -11,7 +10,6 @@ const LaundryCurrentBookings = ({
   setCurrentBooking,
   handleStartMachine,
 }) => {
-  const userBookings = mockLaundrySlots.filter((slot) => slot.userId === "1");
   useEffect(() => {
     const userId = "692a2de34367bd7efe8020ef";
     (async () => {
@@ -91,7 +89,7 @@ const LaundryCurrentBookings = ({
             </div>
           ))}
 
-          {userBookings.length === 0 && (
+          {currentBooking.length === 0 && (
             <div className="text-center py-8">
               <Washing className="w-12 h-12 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-500">
