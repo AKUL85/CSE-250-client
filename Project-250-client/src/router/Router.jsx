@@ -17,6 +17,7 @@ import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStud
 import ComplainForm from "../pages/complains/ComplainForm";
 import MannageFood from "../pages/food/ManageFood";
 import SeatApplications from "../pages/admin/SeatApplications";
+import { Chat } from "../../chat/Chat";
 
 export const router = createBrowserRouter([
   {
@@ -59,8 +60,9 @@ export const router = createBrowserRouter([
       },
       {
         path: "/admin/seat-applications",
-        element: <SeatApplications />
-      }
+        element: <SeatApplications />,
+      },
+      { path: "chat", element: <Chat /> },
     ],
   },
 ]);
