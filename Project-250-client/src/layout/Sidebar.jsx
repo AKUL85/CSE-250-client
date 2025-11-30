@@ -19,6 +19,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // { to: '/chat', icon: MessageSquare, label: 'Chat' },
     { to: '/laundry', icon: Washing, label: 'Laundry' },
     { to: '/rooms', icon: Building, label: 'Rooms' },
+    { to: '/chat', icon: MessageSquare, label: 'Chat'}
     // { to: '/payments/wallet', icon: CreditCard, label: 'Wallet' },
   ];
 
