@@ -1,30 +1,29 @@
-import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Swal from 'sweetalert2';
+import { useState } from "react";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Swal from "sweetalert2";
 import { FaSignInAlt } from "react-icons/fa";
-import {  Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { useAuth } from '../../context/AuthContext';
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useAuth } from "../../context/AuthContext";
+import {jwtDecode} from "jwt-decode";
 
 // Validation schema
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const LoginPage = () => {
-  const { signInWithEmailPass, user, loading } = useAuth();
+  const { user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
-
- 
+  const from = location.state?.from?.pathname || "/dashboard";
 
   // Form hook
   const {
@@ -33,49 +32,56 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
-    
   });
-   // Redirect if already logged in
+  // Redirect if already logged in
   if (user) {
     return <Navigate to={from} replace />;
   }
 
-  const login = async (email,password)=>{
-    fetch("http://localhost:5000/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-})
-  .then(res => res.json())
-  .then(data => {
-      if (data.token) {
+  const login = async (email, password) => {
+    fetch("http://localhost:4000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.token) {
           localStorage.setItem("token", data.token);
-          console.log("Token saved:", data.token);
-      }
-  });
-  }
+
+          const decoded = jwtDecode(data.token);
+          console.log("Decoded Token:", decoded);
+
+          // const userId = decoded.id;
+          // const role = decoded.role;
+
+          // console.log("User ID:", userId);
+          // console.log("Role:", role);
+        }
+      });
+  };
 
   // Submit handler
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
       // await signInWithEmailPass(data.email, data.password);
-      await login(data.email,data.password);
+      await login(data.email, data.password);
       await Swal.fire({
-        icon: 'success',
-        title: 'Welcome back!',
-        text: 'Successfully logged in',
+        icon: "success",
+        title: "Welcome back!",
+        text: "Successfully logged in",
         timer: 2000,
         showConfirmButton: false,
         toast: true,
-        position: 'top-end',
+        position: "top-end",
       });
     } catch (error) {
       await Swal.fire({
-        icon: 'error',
-        title: 'Login Failed',
-        text: error.message || 'Invalid email or password',
-        confirmButtonColor: '#6C5CE7',
+        icon: "error",
+        title: "Login Failed",
+        text: error.message || "Invalid email or password",
+        confirmButtonColor: "#6C5CE7",
       });
     } finally {
       setIsLoading(false);
@@ -85,7 +91,11 @@ const LoginPage = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
   };
 
   const itemVariants = {
@@ -100,7 +110,8 @@ const LoginPage = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg?auto=compress&cs=tinysrgb&w=1200)',
+            backgroundImage:
+              "url(https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg?auto=compress&cs=tinysrgb&w=1200)",
           }}
         />
         <div className="absolute inset-0 " />
@@ -123,14 +134,17 @@ const LoginPage = () => {
               >
                 <h3 className="font-semibold mb-2 text-lg">For Students</h3>
                 <p className="text-sm text-white/80">
-                  Access your profile, order meals, book laundry slots, and more.
+                  Access your profile, order meals, book laundry slots, and
+                  more.
                 </p>
               </motion.div>
               <motion.div
                 variants={itemVariants}
                 className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
               >
-                <h3 className="font-semibold mb-2 text-lg">For Administrators</h3>
+                <h3 className="font-semibold mb-2 text-lg">
+                  For Administrators
+                </h3>
                 <p className="text-sm text-white/80">
                   Manage users, rooms, complaints, and monitor hall operations.
                 </p>
@@ -153,7 +167,6 @@ const LoginPage = () => {
               variants={itemVariants}
               className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mb-4 shadow-md"
             >
-              
               <FaSignInAlt className="w-8 h-8 text-white" />
             </motion.div>
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -164,20 +177,16 @@ const LoginPage = () => {
             </p>
           </div>
 
-          
           {/* Login form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email address
               </label>
-              <motion.div
-                variants={itemVariants}
-                className="relative"
-              >
+              <motion.div variants={itemVariants} className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
-                  {...register('email')}
+                  {...register("email")}
                   type="email"
                   className="w-full pl-11 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300"
                   placeholder="Enter your email"
@@ -198,14 +207,11 @@ const LoginPage = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
-              <motion.div
-                variants={itemVariants}
-                className="relative"
-              >
+              <motion.div variants={itemVariants} className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
                   className="w-full pl-11 pr-11 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300"
                   placeholder="Enter your password"
                 />
@@ -216,7 +222,11 @@ const LoginPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </motion.button>
               </motion.div>
               {errors.password && (
@@ -235,12 +245,21 @@ const LoginPage = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading || loading}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white mt-3 py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
             >
               {isLoading ? <LoadingSpinner size="small" /> : null}
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? "Signing in..." : "Sign in"}
             </motion.button>
           </form>
+          <Link to={"/registration"}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white mt-3 py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
+            >
+              Registration
+            </motion.div>
+          </Link>
         </motion.div>
       </div>
     </div>
