@@ -18,11 +18,16 @@ import ComplainForm from "../pages/complains/ComplainForm";
 import MannageFood from "../pages/food/ManageFood";
 import SeatApplications from "../pages/admin/SeatApplications";
 import { Chat } from "../../chat/Chat";
+import StudentRegistration  from '../pages/auth/StudentRegistration';
 
 export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/registration",
+    element: <StudentRegistration />,
   },
   {
     path: "/",

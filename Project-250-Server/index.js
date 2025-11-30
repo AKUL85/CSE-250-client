@@ -21,6 +21,9 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+// app.use(express.json({ limit: "10mb" })); // for JSON payloads
+// app.use(express.urlencoded({ limit: "10mb", extended: true })); // for form submissions
+
 // 🔹 MongoDB Setup
 const uri = `mongodb+srv://${process.env.USERID}:${process.env.PASSWORD}@cluster0.rdbtijm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
@@ -41,11 +44,7 @@ let menuCollection;
 async function connectDB() {
   try {
     await client.connect();
-<<<<<<< HEAD
-    console.log(" Connected to MongoDB");
-=======
     console.log("✅Connected to MongoDB");
->>>>>>> 38d03fe1dd0f3b60aadd4e4e76f7b8b4471618f5
 
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
@@ -186,57 +185,96 @@ app.post("/register-student", async (req, res,next) =>{
 });
 
 // 🔹 Student Registration
-app.post("/register-student", async (req, res) => {
-  try {
-    const { name, studentId, email, phone, password, role, room, avatar } =
-      req.body;
-
-    if (!name || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Name, email, and password are required" });
-    }
-
-    const assignedRole = role || "student";
-
-    const newUser = {
-      uid: userRecord.uid,
-      studentId: studentId || `ST-${Math.floor(1000 + Math.random() * 9000)}`,
-      name,
-      email,
-      phone: phone || "N/A",
-      role: assignedRole,
-      room: room || "Not assigned",
-      avatar:
-        avatar ||
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-      createdAt: new Date(),
-    };
-
-    // ✅ Step 2: Try inserting into MongoDB
+app.post("/student-registration", async (req, res) => {
     try {
-      const result = await usersCollection.insertOne(newUser);
-      console.log("User inserted in MongoDB with id:", result.insertedId);
-    } catch (mongoErr) {
-      // 🚨 Step 3: Rollback Firebase user if MongoDB insert fails
-      console.error("MongoDB insertion failed:", mongoErr);
-      return res
+      const {
+        name,
+        email,
+        password,
+        phone_number,
+        student_id,
+        department,
+        emergency_contact,
+        room_id,
+        role,
+        profile_photo,
+      } = req.body;
+      // console.log(1);
+      // const student = {
+      //   name,
+      //   email,
+      //   password,
+      //   phone_number,
+      //   student_id,
+      //   department,
+      //   emergency_contact,
+      //   room_id,
+      //   role,
+      //   profile_photo,
+      // };
+      // console.log(student);
+
+      if (
+        !name ||
+        !email ||
+        !password ||
+        !student_id ||
+        !department ||
+        role !== "student"
+      ) {
+        return res
+          .status(400)
+          .json({ message: "More information is required" });
+      }
+
+      // If a file was uploaded, use its buffer (or URL if you plan to upload to cloud storage)
+      // const profile_photo = req.file
+      //   ? `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+      //       "base64"
+      //     )}`
+      //   : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80";
+
+      const newUser = {
+        student_id: student_id,
+        name,
+        email,
+        password,
+        phone_number,
+        department,
+        emergency_contact,
+        room_id,
+        profile_photo,
+        role: "student",
+        balance: 0,
+        laundry_booked: [],
+        complaints: [],
+        total_food_orders: 0,
+        total_complaints: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Step 2: Try inserting into MongoDB
+      try {
+        const result = await usersCollection.insertOne(newUser);
+        console.log("User inserted in MongoDB with id:", result.insertedId);
+      } catch (mongoErr) {
+        console.error("MongoDB insertion failed:", mongoErr);
+        return res.status(500).json({ message: "Failed to save user data." });
+      }
+      res.status(201).json({
+        message: "Student registered successfully",
+        user: newUser,
+      });
+    } catch (error) {
+      console.error("Error registering student:", error);
+
+      res
         .status(500)
-        .json({ message: "Failed to save user data. User rolled back." });
+        .json({ message: "Failed to register student", error: error.message });
     }
-
-    res.status(201).json({
-      message: "Student registered successfully",
-      user: newUser,
-    });
-  } catch (error) {
-    console.error("Error registering student:", error);
-
-    res
-      .status(500)
-      .json({ message: "Failed to register student", error: error.message });
   }
-});
+);
 
 // 🔹 Get & Delete Users
 app.get("/users", async (req, res) => {
