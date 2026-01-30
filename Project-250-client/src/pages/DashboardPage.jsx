@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { 
-  CreditCard, AlertTriangle, ShoppingCart, Clock, 
+import {
+  CreditCard, AlertTriangle, ShoppingCart, Clock,
   Thermometer, Users, TrendingUp, FileText, Wrench,
   DollarSign
 } from 'lucide-react';
@@ -13,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarC
 import dayjs from 'dayjs';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import FoodManagerDashboard from './food/FoodManagerDashboard';
 
 const revenueData = [
   { month: 'Jan', revenue: 45000 },
@@ -54,6 +55,10 @@ const DashboardPage = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };
+
+  if (user.role === 'food_manager') {
+    return <FoodManagerDashboard user={user} />;
+  }
 
   if (user.role === "student") {
     return (
@@ -122,8 +127,8 @@ const DashboardPage = () => {
                     </div>
                     <div>
                       <Link to="/food/menu">
-                      <p className="font-medium text-zinc-900">Order Food</p>
-                      <p className="text-sm text-zinc-500">Browse today's menu</p></Link>
+                        <p className="font-medium text-zinc-900">Order Food</p>
+                        <p className="text-sm text-zinc-500">Browse today's menu</p></Link>
                     </div>
                   </div>
                 </button>
@@ -134,8 +139,8 @@ const DashboardPage = () => {
                     </div>
                     <div>
                       <Link to="/laundry">
-                      <p className="font-medium text-zinc-900">Book Laundry</p>
-                      <p className="text-sm text-zinc-500">Reserve a time slot</p>
+                        <p className="font-medium text-zinc-900">Book Laundry</p>
+                        <p className="text-sm text-zinc-500">Reserve a time slot</p>
                       </Link>
                     </div>
                   </div>
@@ -146,10 +151,10 @@ const DashboardPage = () => {
                       <AlertTriangle className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
-                     <Link to="/complaints">
-                      <p className="font-medium text-zinc-900">File Complaint</p>
-                      <p className="text-sm text-zinc-500">Report an issue</p>
-                     </Link>
+                      <Link to="/complaints">
+                        <p className="font-medium text-zinc-900">File Complaint</p>
+                        <p className="text-sm text-zinc-500">Report an issue</p>
+                      </Link>
                     </div>
                   </div>
                 </button>

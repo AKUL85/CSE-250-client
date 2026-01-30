@@ -14,6 +14,7 @@ const {
 const { router: laundryRouter, setLaundryCollections } = require("./laundry");
 const { router: rommsRouter, setRoomsCollection } = require("./rooms");
 const { router: menuRouter, setMenuCollection } = require("./menu");
+const { router: ordersRouter, setOrdersCollection } = require("./orders");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -37,6 +38,7 @@ let seatApplicationCollection;
 let roomsCollection;
 let laundryCollection;
 let menuCollection;
+let ordersCollection;
 
 async function connectDB() {
   try {
@@ -54,12 +56,14 @@ async function connectDB() {
     roomsCollection = db.collection("rooms");
     laundryCollection = db.collection("laundry");
     menuCollection = db.collection("menu");
+    ordersCollection = db.collection("orders");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
     setLaundryCollections({ laundryCollection });
     setRoomsCollection({ roomsCollection });
     setMenuCollection({ menuCollection });
+    setOrdersCollection({ ordersCollection, menuCollection });
 
     // Register routes
 
@@ -72,26 +76,27 @@ async function connectDB() {
 app.use("/api/laundry", laundryRouter);
 app.use("/api/rooms", rommsRouter);
 app.use("/api/menu", menuRouter);
+app.use("/api", ordersRouter);
 app.use("/api", complainRouter);
 
 // 🔹 Multer Configuration for Seat Application
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.post('/login', async (req,res)=>{
-  try{
-    const {email, password} = req.body;
-    const user = await usersCollection.findOne({email});
-    if(user && user.password === password){
-      const token = generateToken({id:user._id,role:user.role});
-      res.status(200).json({token:token});
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await usersCollection.findOne({ email });
+    if (user && user.password === password) {
+      const token = generateToken({ id: user._id, role: user.role });
+      res.status(200).json({ token: token });
     }
-    else{
-      res.status(400).json({Message: "Invalid Credentials"});
+    else {
+      res.status(400).json({ Message: "Invalid Credentials" });
     }
   }
-  catch(err){
-    res.status(500).json({message: err.message});
+  catch (err) {
+    res.status(500).json({ message: err.message });
   }
 })
 
@@ -118,11 +123,11 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       ...applicationData,
       proofFile: proofFile
         ? {
-            filename: proofFile.originalname,
-            mimetype: proofFile.mimetype,
-            size: proofFile.size,
-            uploadStatus: "received",
-          }
+          filename: proofFile.originalname,
+          mimetype: proofFile.mimetype,
+          size: proofFile.size,
+          uploadStatus: "received",
+        }
         : null,
       status: "submitted",
       createdAt: new Date(),
@@ -160,27 +165,27 @@ app.get("/seat-applications", async (req, res) => {
   }
 });
 
-app.post("/register-student", async (req, res,next) =>{
+app.post("/register-student", async (req, res, next) => {
   let token;
-    if(req.headers.authorization
-        && req.headers.authorization.startsWith('Bearer')
-    ){
-        try{
-            token = req.headers.authorization.split(' ')[1];
-            const payload = jwt.verify(token, process.env.JWT_KEY);
-            const role = payload.role;
-            
-            // req.user = await User.findById(payload.id).select('-password');
-            if(role === "admin")next();
-            else res.status(400).json({Message:"Not Admin"});
-        }
-        catch(err){
-          res.status(400).json({Message: "Invalid token"});
-        }
-      }
-      else{
-        res.status(400).json({Message: "No token"});
-      }
+  if (req.headers.authorization
+    && req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const payload = jwt.verify(token, process.env.JWT_KEY);
+      const role = payload.role;
+
+      // req.user = await User.findById(payload.id).select('-password');
+      if (role === "admin") next();
+      else res.status(400).json({ Message: "Not Admin" });
+    }
+    catch (err) {
+      res.status(400).json({ Message: "Invalid token" });
+    }
+  }
+  else {
+    res.status(400).json({ Message: "No token" });
+  }
 
 
 });
@@ -258,7 +263,7 @@ app.delete("/users/:id", async (req, res) => {
       await admin
         .auth()
         .deleteUser(user.uid)
-        .catch(() => {});
+        .catch(() => { });
     const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
     res.status(result.deletedCount ? 200 : 404).json({ message: "Deleted" });
   } catch (e) {
@@ -272,13 +277,13 @@ app.get("/", (req, res) => {
 });
 
 connectDB()
-.then(()=>{
+  .then(() => {
     console.log("connected to DB");
-    app.listen(port,()=>{
-        console.log(`listening to port ${port}`);
+    app.listen(port, () => {
+      console.log(`listening to port ${port}`);
     })
-})
-.catch((err)=>{
+  })
+  .catch((err) => {
     console.log("error occurred.");
     console.log(err);
-});
+  });

@@ -8,7 +8,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   // console.log(user); // use it to debug
-  
+
   const studentLinks = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/profile', icon: User, label: 'Profile' },
@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // { to: '/chat', icon: MessageSquare, label: 'Chat' },
     { to: '/laundry', icon: Washing, label: 'Laundry' },
     { to: '/rooms', icon: Building, label: 'Rooms' },
-    { to: '/chat', icon: MessageSquare, label: 'Chat'}
+    { to: '/chat', icon: MessageSquare, label: 'Chat' }
     // { to: '/payments/wallet', icon: CreditCard, label: 'Wallet' },
   ];
 
@@ -30,12 +30,22 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/admin/menus', icon: Utensils, label: 'Manage Menus' },
     // { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { to: '/complaints', icon: AlertTriangle, label: 'Complaints' },
-    { to : '/admin/register-student', icon: Shield, label: 'Register Student'}
+    { to: '/admin/register-student', icon: Shield, label: 'Register Student' }
 
     // { to: '/chat', icon: MessageSquare, label: 'Chat' },
   ];
 
-  const links = user?.role === 'admin' ? adminLinks : studentLinks;
+  const foodManagerLinks = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/menus', icon: Utensils, label: 'Manage Menu' },
+  ];
+
+  let links = studentLinks;
+  if (user?.role === 'admin') {
+    links = adminLinks;
+  } else if (user?.role === 'food_manager') {
+    links = foodManagerLinks;
+  }
 
   const sidebarVariants = {
     open: { x: 0 },
@@ -72,7 +82,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold  text-lg text-zinc-900">
-              {user?.role === 'admin' ? "Admin Dashboard" : "Student Nest" }
+              {user?.role === 'admin' ? "Admin Dashboard" : "Student Nest"}
             </span>
           </div>
           <button
@@ -101,18 +111,16 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <NavLink
                   to={link.to}
                   onClick={() => window.innerWidth < 1024 && onClose()}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden font-medium ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden font-medium ${isActive
                       ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 transform scale-105"
                       : "text-zinc-700 hover:bg-zinc-100 hover:text-blue-600"
-                  }`}
+                    }`}
                 >
                   <Icon
-                    className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-                      isActive
+                    className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive
                         ? "text-white"
                         : "text-zinc-500 group-hover:text-blue-600"
-                    }`}
+                      }`}
                   />
                   <span className="font-medium text-sm">{link.label}</span>
 
@@ -153,7 +161,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {user.displayName}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">
-                {user.role === "admin" ? "Administrator" : `Room ${user.room? user.room : "N/A"}`}
+                {user.role === "admin" ? "Administrator" : `Room ${user.room ? user.room : "N/A"}`}
               </p>
             </div>
           </div>

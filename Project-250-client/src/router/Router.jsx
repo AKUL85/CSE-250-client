@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         {" "}
-        {/* ✅ Protect everything inside AppShell */}
+        
         <AppShell />
       </ProtectedRoute>
     ),

@@ -1,4 +1,4 @@
-// src/pages/SeatApplicationPage.jsx
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';

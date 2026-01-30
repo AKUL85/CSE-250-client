@@ -1,12 +1,10 @@
-// src/pages/FoodOrdersPage.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Package } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import OrderCard from '../../components/FoodMenu/OrderCard';
-import { mockOrders } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
 import OrderHeader from '../../components/FoodMenu/OrderHeader';
-
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -19,19 +17,55 @@ const containerVariants = {
 };
 
 const FoodOrdersPage = () => {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        let url = 'http://localhost:4000/api/orders';
+        if (user.role === 'student') {
+          const userId = user._id || user.id || user.uid;
+          url = `http://localhost:4000/api/orders/my-orders/${userId}`;
+        }
+
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setOrders(data);
+        } else {
+          console.error("Failed to fetch orders");
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) fetchOrders();
+  }, [user]);
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <OrderHeader />
-      
-      {mockOrders.length > 0 ? (
+
+      {orders.length > 0 ? (
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="space-y-4"
         >
-          {mockOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+          {orders.map((order) => (
+            <OrderCard key={order._id || order.id} order={order} />
           ))}
         </motion.div>
       ) : (
@@ -41,14 +75,13 @@ const FoodOrdersPage = () => {
             No orders yet
           </h3>
           <p className="text-gray-600 mb-4">
-            Start by ordering from our delicious menu
+            {user.role === 'food_manager' ? "No orders have been placed yet." : "Start by ordering from our delicious menu"}
           </p>
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-          >
-            Browse Menu
-          </motion.button>
+          {user.role !== 'food_manager' && (
+            <button className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
+              Browse Menu
+            </button>
+          )}
         </Card>
       )}
     </div>

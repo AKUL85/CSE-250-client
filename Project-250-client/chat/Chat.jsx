@@ -22,10 +22,9 @@ export function Chat() {
     activeRoomRef.current = activeRoom;
   }, [activeRoom]);
 
-  // Initialize socket connection
+ 
   useEffect(() => {
-    // In a real app, you'd get this from your auth system
-    // const userId = localStorage.getItem("userId");
+   
     const userId = "692a2de34367bd7efe8020ef";
     const email = "alnoman05405@gmail.com";
 
