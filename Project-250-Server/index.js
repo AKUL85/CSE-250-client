@@ -3,10 +3,8 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const multer = require("multer");
 require("dotenv").config();
-const jwt = require('jsonwebtoken');
-const generateToken = require('./generateToken');
-
-
+const jwt = require("jsonwebtoken");
+const generateToken = require("./generateToken");const bcrypt = require('bcrypt');
 const {
   router: complainRouter,
   setComplainCollections,
@@ -43,11 +41,7 @@ let ordersCollection;
 async function connectDB() {
   try {
     await client.connect();
-<<<<<<< HEAD
     console.log(" Connected to MongoDB");
-=======
-    console.log("✅Connected to MongoDB");
->>>>>>> 38d03fe1dd0f3b60aadd4e4e76f7b8b4471618f5
 
     const db = client.db(process.env.MONGO_DB || "HallMannagement");
     usersCollection = db.collection("users");
@@ -73,8 +67,8 @@ async function connectDB() {
   }
 }
 
-app.use("/api/laundry", laundryRouter);
-app.use("/api/rooms", rommsRouter);
+app.use("/api/", laundryRouter);
+app.use("/api/", rommsRouter);
 app.use("/api/menu", menuRouter);
 app.use("/api", ordersRouter);
 app.use("/api", complainRouter);
@@ -83,22 +77,21 @@ app.use("/api", complainRouter);
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await usersCollection.findOne({ email });
+    // const passwordMatch = await bcrypt.compare(password, user.password);
     if (user && user.password === password) {
       const token = generateToken({ id: user._id, role: user.role });
       res.status(200).json({ token: token });
-    }
-    else {
+    } else {
       res.status(400).json({ Message: "Invalid Credentials" });
     }
-  }
-  catch (err) {
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
-})
+});
 
 // 🔹 Seat Application Routes
 app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
@@ -123,11 +116,11 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       ...applicationData,
       proofFile: proofFile
         ? {
-          filename: proofFile.originalname,
-          mimetype: proofFile.mimetype,
-          size: proofFile.size,
-          uploadStatus: "received",
-        }
+            filename: proofFile.originalname,
+            mimetype: proofFile.mimetype,
+            size: proofFile.size,
+            uploadStatus: "received",
+          }
         : null,
       status: "submitted",
       createdAt: new Date(),
@@ -165,31 +158,6 @@ app.get("/seat-applications", async (req, res) => {
   }
 });
 
-app.post("/register-student", async (req, res, next) => {
-  let token;
-  if (req.headers.authorization
-    && req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const payload = jwt.verify(token, process.env.JWT_KEY);
-      const role = payload.role;
-
-      // req.user = await User.findById(payload.id).select('-password');
-      if (role === "admin") next();
-      else res.status(400).json({ Message: "Not Admin" });
-    }
-    catch (err) {
-      res.status(400).json({ Message: "Invalid token" });
-    }
-  }
-  else {
-    res.status(400).json({ Message: "No token" });
-  }
-
-
-});
-
 // 🔹 Student Registration
 app.post("/register-student", async (req, res) => {
   try {
@@ -203,13 +171,14 @@ app.post("/register-student", async (req, res) => {
     }
 
     const assignedRole = role || "student";
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = {
-      uid: userRecord.uid,
       studentId: studentId || `ST-${Math.floor(1000 + Math.random() * 9000)}`,
       name,
       email,
       phone: phone || "N/A",
+      password: hashedPassword,
       role: assignedRole,
       room: room || "Not assigned",
       avatar:
@@ -218,25 +187,13 @@ app.post("/register-student", async (req, res) => {
       createdAt: new Date(),
     };
 
-    // ✅ Step 2: Try inserting into MongoDB
-    try {
-      const result = await usersCollection.insertOne(newUser);
-      console.log("User inserted in MongoDB with id:", result.insertedId);
-    } catch (mongoErr) {
-      // 🚨 Step 3: Rollback Firebase user if MongoDB insert fails
-      console.error("MongoDB insertion failed:", mongoErr);
-      return res
-        .status(500)
-        .json({ message: "Failed to save user data. User rolled back." });
-    }
-
+    const result = await usersCollection.insertOne(newUser);
     res.status(201).json({
       message: "Student registered successfully",
-      user: newUser,
+      user: { ...newUser, password: undefined },
     });
   } catch (error) {
     console.error("Error registering student:", error);
-
     res
       .status(500)
       .json({ message: "Failed to register student", error: error.message });
@@ -255,19 +212,18 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.delete("/users/:id", async (req, res) => {
+app.get("/users/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
-    if (user?.uid)
-      await admin
-        .auth()
-        .deleteUser(user.uid)
-        .catch(() => { });
-    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(result.deletedCount ? 200 : 404).json({ message: "Deleted" });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
+    if (user) {
+      const { password, ...userWithoutPassword } = user;
+      res.status(200).json(userWithoutPassword);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -281,7 +237,7 @@ connectDB()
     console.log("connected to DB");
     app.listen(port, () => {
       console.log(`listening to port ${port}`);
-    })
+    });
   })
   .catch((err) => {
     console.log("error occurred.");

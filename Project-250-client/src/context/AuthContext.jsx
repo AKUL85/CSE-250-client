@@ -1,72 +1,104 @@
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
 import { createContext, useState, useEffect, useContext } from "react";
-import { auth } from "../../config/firebase";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
-
-const provider = new GoogleAuthProvider();
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const createUser = (email, password) => {
+  const login = async (email, password) => {
     setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+    try {
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        // Decode token to get user info
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        const userData = await fetchUserData(payload.id);
+        setUser({ ...userData, displayName: userData.name, role: payload.role });
+        return { success: true };
+      } else {
+        throw new Error(data.Message || 'Login failed');
+      }
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
-  const signInWithEmailPass = (email, password) => {
+  const register = async (userData) => {
     setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
+    try {
+      const response = await fetch('http://localhost:4000/register-student', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // After register, login
+        return await login(userData.email, userData.password);
+      } else {
+        throw new Error(data.message || 'Registration failed');
+      }
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
-  const signInwithGmail = () => {
-    setLoading(true);
-    return signInWithPopup(auth, provider);
+  const fetchUserData = async (id) => {
+    const response = await fetch(`http://localhost:4000/users/${id}`);
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('Failed to fetch user data');
+    }
   };
 
   const signOutUser = async () => {
     setLoading(true);
-
-    return signOut(auth);
+    localStorage.removeItem('token');
+    setUser(null);
+    setLoading(false);
   };
 
   useEffect(() => {
-    const unsubscribed = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        // Fetch ID token with claims
-        const idTokenResult = await currentUser.getIdTokenResult(true);
-        // Attach role to user object for easy access
-        // currentUser.role = idTokenResult.claims.role || null;
-        currentUser.role = "admin"
-        currentUser.role = "student"
-        // console.log(currentUser);
-
-        setUser(currentUser);
-      } else {
-        setUser(null);
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // Check if token is expired
+        if (payload.exp * 1000 > Date.now()) {
+          fetchUserData(payload.id).then(userData => {
+            setUser({ ...userData, displayName: userData.name, role: payload.role });
+          });
+        } else {
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
       }
-      setLoading(false);
-    });
-
-    return unsubscribed;
+    }
+    setLoading(false);
   }, []);
 
   const authInfo = {
     user,
     loading,
     setLoading,
-    signInWithEmailPass,
-    signInwithGmail,
-    createUser,
+    login,
+    register,
     signOutUser,
   };
 

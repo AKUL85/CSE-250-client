@@ -2,7 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const dayjs = require("dayjs");
-const { messaging } = require("firebase-admin");
 
 let laundryCollection;
 
@@ -67,6 +66,7 @@ router.get("/laundry/slots", async (req, res) => {
     if (!date) {
       return res.status(400).json({ error: "Missing date parameter" });
     }
+    console.log("here");
 
     // Convert date to _id prefix format
     const dateObj = dayjs(date);
