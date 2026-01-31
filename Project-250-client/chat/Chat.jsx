@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
-import "./Chat.css";
+import { useAuth } from "../src/context/AuthContext";
 
 const connection_link = "https://chatapp-server-8z7o.onrender.com";
 const connection_link1 = "http://localhost:8001";
 
 export function Chat() {
+  const { user } = useAuth();
   const [rooms, setRooms] = useState([]);
   const [activeRoom, setActiveRoom] = useState("");
   const [roomMessages, setRoomMessages] = useState({});
@@ -25,13 +26,13 @@ export function Chat() {
  
   useEffect(() => {
    
-    const userId = "692a2de34367bd7efe8020ef";
-    const email = "alnoman05405@gmail.com";
-
-    if (!userId) {
-      console.error("No user ID found. Please log in first.");
+    if (!user || !user._id) {
+      console.error("No user found. Please log in first.");
       return;
     }
+
+    const userId = user._id;
+    const email = user.email;
 
     const newSocket = io(connection_link, {
       auth: {
@@ -89,7 +90,7 @@ export function Chat() {
     return () => {
       newSocket.close();
     };
-  }, []);
+  }, [user]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -152,29 +153,28 @@ export function Chat() {
   };
 
   return (
-    <div className="chat-app">
+    <div className="flex h-[85vh] bg-gray-800 text-white relative">
       {/* Connection Status */}
-      <div className={`connection-status ${isConnected ? "" : "disconnected"}`}>
-        {isConnected ? "" : "No connection"}
+      <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs z-10 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}>
+        {isConnected ? 'Connected' : 'Disconnected'}
       </div>
 
       {/* Sidebar */}
-      <div className="sidebar">
-        <h3 className="sidebar-title">Chat Rooms</h3>
-        <ul className="room-list">
+      <div className="w-60 bg-gray-700 p-4 border-r border-gray-600">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2">Chat Rooms</h3>
+        <ul className="space-y-1">
           {rooms.map((room) => (
             <li
               key={room}
-              className={`room-item ${activeRoom === room ? "active" : ""}`}
+              className={`p-2 cursor-pointer rounded flex items-center transition-colors ${activeRoom === room ? 'bg-gray-600' : 'hover:bg-gray-600'}`}
               onClick={() => {
                 setActiveRoom(room);
-                // console.log("setting active room to ", room);
-                setMessages(roomMessages[room]);
+                setMessages(roomMessages[room] || []);
                 activeRoomRef.current = room;
                 scrollToBottom();
               }}
             >
-              <span className="room-icon">#</span>
+              <span className="text-gray-400 mr-2">#</span>
               {room}
             </li>
           ))}
@@ -182,44 +182,44 @@ export function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="main-chat">
+      <div className="flex-1 flex flex-col">
         {/* Room Header */}
-        <div className="chat-header">
-          <h2>#{activeRoom}</h2>
-          <span className="room-info">
+        <div className="p-4 border-b border-gray-600 flex justify-between items-center">
+          <h2 className="text-lg font-semibold">#{activeRoom}</h2>
+          <span className="text-sm text-gray-400">
             {messages.length} messages
             {!activeRoom && " - Select a room to start chatting"}
           </span>
         </div>
 
         {/* Messages Area */}
-        <div className="messages-container">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col">
           {messages.length >= 20 && (
-            <div className="load-more-container">
-              <button onClick={loadMoreMessages} className="load-more-btn">
+            <div className="flex justify-center mb-4">
+              <button onClick={loadMoreMessages} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500">
                 Load More Messages
               </button>
             </div>
           )}
 
-          <div className="messages-list">
+          <div className="flex flex-col gap-4 flex-1">
             {messages.map((message, index) => {
-              const isOwnMessage =(message.username || message.name) === "noman";
+              const isOwnMessage = (message.username || message.name) === user?.name;
               return (
                 <div
                   key={message._id?.$oid || index}
-                  className={`message-container ${isOwnMessage ? "own-message" : "other-message"}`}
+                  className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="message">
-                    <div className="message-header">
-                      <span className="user-name">
+                  <div className={`bg-gray-600 rounded-lg p-3 max-w-xs lg:max-w-md ${isOwnMessage ? 'bg-blue-600' : ''}`}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold text-white">
                         {message.username || message.name}
                       </span>
-                      <span className="message-time">
+                      <span className="text-xs text-gray-400">
                         {formatTime(message.timestamp || message.time?.$date)}
                       </span>
                     </div>
-                    <div className="message-text">{message.text}</div>
+                    <div className="text-gray-100">{message.text}</div>
                   </div>
                 </div>
               );
@@ -228,7 +228,7 @@ export function Chat() {
           </div>
 
           {messages.length === 0 && activeRoom && (
-            <div className="no-messages">
+            <div className="text-center text-gray-400 italic mt-12">
               No messages yet. Start the conversation!
             </div>
           )}
@@ -236,18 +236,18 @@ export function Chat() {
 
         {/* Message Input */}
         {activeRoom && (
-          <form onSubmit={handleSendMessage} className="message-input-form">
+          <form onSubmit={handleSendMessage} className="p-4 bg-gray-700 border-t border-gray-600 flex gap-2">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={`Message #${activeRoom}`}
-              className="message-input"
+              className="flex-1 bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={!isConnected}
             />
             <button
               type="submit"
-              className="send-button"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed"
               disabled={!isConnected || !newMessage.trim()}
             >
               Send

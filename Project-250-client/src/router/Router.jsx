@@ -16,6 +16,7 @@ import ProtectedRoute from "../pages/auth/ProtectedRoute";
 import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
 import ComplainForm from "../pages/complains/ComplainForm";
 import MannageFood from "../pages/food/ManageFood";
+import FoodManagerOrdersPage from "../pages/food/FoodManagerOrdersPage";
 import SeatApplications from "../pages/admin/SeatApplications";
 import { Chat } from "../../chat/Chat";
 
@@ -61,6 +62,10 @@ export const router = createBrowserRouter([
       {
         path: "/admin/seat-applications",
         element: <SeatApplications />,
+      },
+      {
+        path: "foodmanager/orders",
+        element: <FoodManagerOrdersPage />,
       },
       { path: "chat", element: <Chat /> },
     ],

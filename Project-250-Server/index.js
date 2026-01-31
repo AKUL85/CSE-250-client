@@ -13,6 +13,10 @@ const { router: laundryRouter, setLaundryCollections } = require("./laundry");
 const { router: rommsRouter, setRoomsCollection } = require("./rooms");
 const { router: menuRouter, setMenuCollection } = require("./menu");
 const { router: ordersRouter, setOrdersCollection } = require("./orders");
+const {
+  router: foodManagerRouter,
+  setFoodManagerCollections,
+} = require("./foodmanager");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -58,6 +62,7 @@ async function connectDB() {
     setRoomsCollection({ roomsCollection });
     setMenuCollection({ menuCollection });
     setOrdersCollection({ ordersCollection, menuCollection });
+    setFoodManagerCollections({ menuCollection, ordersCollection });
 
     // Register routes
 
@@ -69,9 +74,10 @@ async function connectDB() {
 
 app.use("/api/", laundryRouter);
 app.use("/api/", rommsRouter);
-app.use("/api/menu", menuRouter);
+app.use("/api/", menuRouter);
 app.use("/api", ordersRouter);
 app.use("/api", complainRouter);
+app.use("/api/food", foodManagerRouter);
 
 // 🔹 Multer Configuration for Seat Application
 const storage = multer.memoryStorage();

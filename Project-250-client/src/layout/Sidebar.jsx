@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold  text-lg text-zinc-900">
-              {user?.role === 'admin' ? "Admin Dashboard" : "Student Nest"}
+              {user?.role === 'admin' ? "Admin Dashboard" : user?.role === 'food_manager' ? "Food Manager Dashboard" : "Student Nest"}
             </span>
           </div>
           <button

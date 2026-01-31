@@ -24,7 +24,10 @@ const FoodMenuPage = () => {
   const { user } = useAuth();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState('Monday'); // Changed default to Capitalized to match backend/mock usually
+  
+  // Determine today's day of the week
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const [selectedDay, setSelectedDay] = useState(today);
   const [selectedMeal, setSelectedMeal] = useState('all');
   const [cart, setCart] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,11 +35,12 @@ const FoodMenuPage = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/menu');
+        setLoading(true);
+        // Only fetch today's items from the backend
+        const res = await fetch(`http://localhost:4000/api/menu?day=${selectedDay}`);
         if (res.ok) {
           const data = await res.json();
           setMenuItems(data);
-          // If backend returns empty, we might want to keep loading state handled
         }
       } catch (e) {
         console.error("Failed to fetch menu", e);
@@ -45,18 +49,13 @@ const FoodMenuPage = () => {
       }
     };
     fetchMenu();
-  }, []);
+  }, [selectedDay]);
 
   const filteredItems = menuItems.filter(item => {
-    // Backend uses capitalized days "Monday", mock used "monday".
-    // Let's handle case insensitivity
-    const itemDay = item.day ? item.day.toLowerCase() : '';
-    const currentDay = selectedDay.toLowerCase();
-
-    const matchesDay = itemDay === currentDay;
+    // API already filters by day, but we still handle optional filters here
     const matchesMeal = selectedMeal === 'all' || (item.mealType && item.mealType.toLowerCase() === selectedMeal.toLowerCase());
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesDay && matchesMeal && matchesSearch;
+    return matchesMeal && matchesSearch;
   });
 
   const addToCart = (item) => {
@@ -173,8 +172,6 @@ const FoodMenuPage = () => {
       <Filters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        selectedDay={selectedDay}
-        setSelectedDay={setSelectedDay}
         selectedMeal={selectedMeal}
         setSelectedMeal={setSelectedMeal}
       />

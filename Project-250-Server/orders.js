@@ -71,7 +71,7 @@ router.put("/orders/:id", async (req, res) => {
     );
 
     if (!result.value) {
-      return res.status(404).json({ message: "Order not found" });
+      // return res.status(404).json({ message: "Order not found" });
     }
 
     res.status(200).json(result.value);

@@ -4,8 +4,7 @@ import { Search } from 'lucide-react';
 import Card from '../ui/Card';
 
 
-const Filters = ({ searchTerm, setSearchTerm, selectedDay, setSelectedDay, selectedMeal, setSelectedMeal }) => {
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const Filters = ({ searchTerm, setSearchTerm, selectedMeal, setSelectedMeal }) => {
   const mealTypes = ['all', 'breakfast', 'lunch', 'dinner'];
 
   return (
@@ -21,23 +20,6 @@ const Filters = ({ searchTerm, setSearchTerm, selectedDay, setSelectedDay, selec
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
           />
-        </div>
-
-        {/* Day Filter */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {days.map((day) => (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(day)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                selectedDay === day
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {day.charAt(0).toUpperCase() + day.slice(1)}
-            </button>
-          ))}
         </div>
 
         {/* Meal Type Filter */}
