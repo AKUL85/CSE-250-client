@@ -19,6 +19,7 @@ import MannageFood from "../pages/food/ManageFood";
 import FoodManagerOrdersPage from "../pages/food/FoodManagerOrdersPage";
 import SeatApplications from "../pages/admin/SeatApplications";
 import ComplainPageAdmin from "../pages/admin/ComplainPageAdmin";
+import LaundryManagerDashboard from "../pages/admin/LaundryManagerDashboard";
 import { Chat } from "../../chat/Chat";
 
 export const router = createBrowserRouter([
@@ -71,6 +72,10 @@ export const router = createBrowserRouter([
       {
         path: "foodmanager/orders",
         element: <FoodManagerOrdersPage />,
+      },
+      {
+        path: "laundry/dashboard",
+        element: <LaundryManagerDashboard />,
       },
       { path: "chat", element: <Chat /> },
     ],

@@ -53,12 +53,13 @@ async function connectDB() {
     seatApplicationCollection = db.collection("seatApplications");
     roomsCollection = db.collection("rooms");
     laundryCollection = db.collection("laundry");
+    const laundryMachinesCollection = db.collection("laundryMachines");
     menuCollection = db.collection("menu");
     ordersCollection = db.collection("orders");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
-    setLaundryCollections({ laundryCollection });
+    setLaundryCollections({ laundryCollection, laundryMachinesCollection });
     setRoomsCollection({ roomsCollection });
     setMenuCollection({ menuCollection });
     setOrdersCollection({ ordersCollection, menuCollection });

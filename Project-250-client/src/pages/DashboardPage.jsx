@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import FoodManagerDashboard from './food/FoodManagerDashboard';
+import LaundryManagerDashboard from './admin/LaundryManagerDashboard';
 
 const revenueData = [
   { month: 'Jan', revenue: 45000 },
@@ -58,6 +59,10 @@ const DashboardPage = () => {
 
   if (user.role === 'food_manager') {
     return <FoodManagerDashboard user={user} />;
+  }
+
+  if (user.role === 'laundry_manager') {
+    return <LaundryManagerDashboard user={user} />;
   }
 
   if (user.role === "student") {
