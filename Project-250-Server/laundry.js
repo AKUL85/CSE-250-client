@@ -4,9 +4,11 @@ const router = express.Router();
 const dayjs = require("dayjs");
 
 let laundryCollection;
+let laundryMachinesCollection;
 
-const setLaundryCollections = ({ laundryCollection: lc }) => {
+const setLaundryCollections = ({ laundryCollection: lc, laundryMachinesCollection: lmc }) => {
   laundryCollection = lc;
+  laundryMachinesCollection = lmc;
 };
 
 // Utility: Generate slots for a specific date
@@ -183,9 +185,6 @@ router.get("/laundry/booked", async (req, res) => {
   try {
     if (!laundryCollection)
       return res.status(500).json({ message: "Database not initialized!" });
-    // if (!ObjectId.isValid(userId)) {
-    //   return res.status(400).json({ error: "Invalid userId" });
-    // }
 
     const bookedSlots = await laundryCollection
       .find({ userId: userId })
@@ -195,6 +194,59 @@ router.get("/laundry/booked", async (req, res) => {
   } catch (err) {
     console.log("Error finding booked slots: ", err);
     res.status(500).json({ message: "Server error " });
+  }
+});
+
+// GET: laundry machines and their status
+router.get("/laundry/machines", async (req, res) => {
+  try {
+    if (!laundryMachinesCollection) return res.status(500).json({ message: "Database not initialized" });
+    
+    let machines = await laundryMachinesCollection.find().toArray();
+    
+    // Seed machines if none exist
+    if (machines.length === 0) {
+      const initialMachines = [
+        { machineId: "M001", status: "operational", type: "Front Load", model: "Samsung V5" },
+        { machineId: "M002", status: "operational", type: "Front Load", model: "Samsung V5" },
+        { machineId: "M003", status: "repair", type: "Top Load", model: "LG Turbo" },
+        { machineId: "M004", status: "operational", type: "Top Load", model: "LG Turbo" },
+      ];
+      await laundryMachinesCollection.insertMany(initialMachines);
+      machines = await laundryMachinesCollection.find().toArray();
+    }
+    
+    // Get usage stats for each machine
+    const stats = await laundryCollection.aggregate([
+      { $match: { status: "booked" } },
+      { $group: { _id: "$machineId", totalUsage: { $sum: 1 } } }
+    ]).toArray();
+    
+    const machinesWithStats = machines.map(m => {
+      const usage = stats.find(s => s._id === m.machineId);
+      return { ...m, totalUsage: usage ? usage.totalUsage : 0 };
+    });
+    
+    res.status(200).json(machinesWithStats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH: Update machine status
+router.patch("/laundry/machines/:machineId", async (req, res) => {
+  try {
+    const { machineId } = req.params;
+    const { status } = req.body;
+    
+    await laundryMachinesCollection.updateOne(
+      { machineId: machineId },
+      { $set: { status } }
+    );
+    
+    res.status(200).json({ message: "Machine status updated" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

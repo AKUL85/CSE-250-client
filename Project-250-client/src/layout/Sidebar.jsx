@@ -40,11 +40,18 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/admin/menus', icon: Utensils, label: 'Manage Menu' },
   ];
 
+  const laundryManagerLinks = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    // { to: '/laundry/dashboard', icon: Washing, label: 'Manage Laundry' },
+  ];
+
   let links = studentLinks;
   if (user?.role === 'admin') {
     links = adminLinks;
   } else if (user?.role === 'food_manager') {
     links = foodManagerLinks;
+  } else if (user?.role === 'laundry_manager') {
+    links = laundryManagerLinks;
   }
 
   const sidebarVariants = {
@@ -82,7 +89,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold  text-lg text-zinc-900">
-              {user?.role === 'admin' ? "Admin Dashboard" : user?.role === 'food_manager' ? "Food Manager Dashboard" : "Student Nest"}
+              {user?.role === 'admin' ? "Admin Dashboard" : user?.role === 'food_manager' ? "Food Manager Dashboard" : user?.role === 'laundry_manager' ? "Laundry Manager Dashboard" : "Student Nest"}
             </span>
           </div>
           <button
@@ -161,7 +168,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {user.displayName}
               </p>
               <p className="text-xs text-zinc-500 truncate mt-0.5">
-                {user.role === "admin" ? "Administrator" : `Room ${user.room ? user.room : "N/A"}`}
+                {user.role === "admin" ? "Administrator" : user.role === "food_manager" ? "Food Manager" : user.role === "laundry_manager" ? "Laundry Manager" : `Room ${user.room ? user.room : "N/A"}`}
               </p>
             </div>
           </div>
