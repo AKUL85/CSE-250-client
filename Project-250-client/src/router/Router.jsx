@@ -18,6 +18,7 @@ import ComplainForm from "../pages/complains/ComplainForm";
 import MannageFood from "../pages/food/ManageFood";
 import FoodManagerOrdersPage from "../pages/food/FoodManagerOrdersPage";
 import SeatApplications from "../pages/admin/SeatApplications";
+import ComplainPageAdmin from "../pages/admin/ComplainPageAdmin";
 import { Chat } from "../../chat/Chat";
 
 export const router = createBrowserRouter([
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
       {
         path: "/admin/menus",
         element: <MannageFood />,
+      },
+      {
+        path: "/admin/complaints",
+        element: <ComplainPageAdmin />,
       },
       {
         path: "/admin/seat-applications",

@@ -71,7 +71,7 @@ const RoomTable = ({ rooms, handleDeleteRoom, getStatusColor, getTypeColor }) =>
 
                   {/* Rent */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${room.rent}/month
+                    ৳{room.rent}/month
                   </td>
 
                   {/* Actions */}

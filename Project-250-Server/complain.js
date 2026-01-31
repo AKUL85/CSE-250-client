@@ -1,4 +1,5 @@
 const express = require("express");
+const { ObjectId } = require("mongodb");
 const multer = require("multer");
 const router = express.Router();
 
@@ -102,6 +103,35 @@ router.get("/complains/:_id", async (req, res) => {
       return res.status(404).json({ error: "Complaint not found" });
     console.log("found complaint");
     res.json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH: Update complaint status
+router.patch("/complains/:_id/status", async (req, res) => {
+  const { _id } = req.params;
+  const { status } = req.body;
+
+  try {
+    if (!complainCollection)
+      return res.status(500).json({ message: "Database not initialized" });
+
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid complaint ID" });
+    }
+
+    const result = await complainCollection.findOneAndUpdate(
+      { _id: new ObjectId(_id) },
+      { $set: { status } },
+      { returnDocument: "after" }
+    );
+
+    if (!result.value) {
+      // return res.status(404).json({ error: "Complaint not found" });
+    }
+
+    res.json(result.value);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
