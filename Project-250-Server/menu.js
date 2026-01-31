@@ -9,10 +9,18 @@ function setMenuCollection(collections) {
   menuCollection = collections.menuCollection;
 }
 
-// GET all menu items
+// GET menu items (filter by day if provided)
 router.get("/menu", async (req, res) => {
   try {
-    const menuItems = await menuCollection.find().toArray();
+    const { day } = req.query;
+    let query = {};
+    
+    if (day) {
+      // Use regex for case-insensitive match
+      query.day = { $regex: new RegExp(`^${day}$`, 'i') };
+    }
+    
+    const menuItems = await menuCollection.find(query).toArray();
     res.status(200).json(menuItems);
   } catch (error) {
     console.error("Failed to fetch menu items:", error);

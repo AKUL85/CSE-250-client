@@ -1,5 +1,4 @@
 // src/components/MenuItemCard.jsx
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, Star, AlertCircle, Clock, Utensils } from 'lucide-react';
 import Card from '../ui/Card';
@@ -34,7 +33,7 @@ const MenuItemCard = ({ item, cart, addToCart, removeFromCart }) => {
           <div className="absolute top-3 right-3">
             <div className="bg-white/80 backdrop-blur-sm rounded-lg px-3 py-1">
               <span className="text-gray-900 font-semibold">
-                ${item.price.toFixed(2)}
+                ৳{item.price.toFixed(2)}
               </span>
             </div>
           </div>
@@ -69,7 +68,7 @@ const MenuItemCard = ({ item, cart, addToCart, removeFromCart }) => {
           </div>
 
           {/* Allergens */}
-          {item.allergens.length > 0 && (
+          {/* {item.allergens.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-4 h-4 text-orange-500" />
               <div className="flex gap-1">
@@ -80,7 +79,7 @@ const MenuItemCard = ({ item, cart, addToCart, removeFromCart }) => {
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Add to Cart Controls */}
           <div className="flex items-center justify-between">
@@ -117,7 +116,7 @@ const MenuItemCard = ({ item, cart, addToCart, removeFromCart }) => {
             
             <div className="text-right">
               <p className="text-xl font-bold text-purple-600">
-                ${item.price.toFixed(2)}
+                ৳{item.price.toFixed(2)}
               </p>
             </div>
           </div>
