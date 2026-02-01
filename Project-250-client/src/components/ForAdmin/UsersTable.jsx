@@ -15,6 +15,10 @@ const UserTable = ({ users, handleDeleteUser, getRoleColor, getStatusColor }) =>
     visible: { opacity: 1, y: 0 },
   };
 
+  const capitalize = (str) =>
+  str.charAt(0).toUpperCase();
+
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
       <Card className="overflow-hidden">
@@ -40,7 +44,7 @@ const UserTable = ({ users, handleDeleteUser, getRoleColor, getStatusColor }) =>
                   {/* User Info */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                      <img src={user.avatar} alt={capitalize(user.name)} className="w-10 h-10 rounded-full object-cover" />
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
