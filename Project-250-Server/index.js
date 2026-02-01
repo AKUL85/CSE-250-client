@@ -78,6 +78,24 @@ app.use("/api/", rommsRouter);
 app.use("/api/", menuRouter);
 app.use("/api", ordersRouter);
 app.use("/api", complainRouter);
+
+// 🔹 Helper Function: Calculate Financial Condition Based on Income
+const calculateFinancialCondition = (familyIncomeStr) => {
+  const familyIncome = parseInt(familyIncomeStr) || 0;
+  
+  // Income brackets (in PKR)
+  // Excellent: >= 2,000,000 (very financially stable)
+  // Average: 500,000 - 1,999,999 (moderate income)
+  // Poor: < 500,000 (needs financial assistance)
+  
+  if (familyIncome >= 2000000) {
+    return "excellent";
+  } else if (familyIncome >= 500000) {
+    return "average";
+  } else {
+    return "poor";
+  }
+};
 app.use("/api/food", foodManagerRouter);
 
 // 🔹 Multer Configuration for Seat Application
@@ -86,6 +104,7 @@ const upload = multer({ storage });
 
 app.post("/login", async (req, res) => {
   try {
+    console.log("here");
     const { email, password } = req.body;
     const user = await usersCollection.findOne({ email });
     // const passwordMatch = await bcrypt.compare(password, user.password);
@@ -112,15 +131,21 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       !applicationData.block ||
       !applicationData.department ||
       !applicationData.cgpa ||
-      !applicationData.semester
+      !applicationData.semester ||
+      !applicationData.familyIncome
     ) {
       return res
         .status(400)
         .json({ message: "Missing required application data." });
     }
 
+    // Calculate financial condition based on family income
+    const financialCondition = calculateFinancialCondition(applicationData.familyIncome);
+
     const newApplication = {
       ...applicationData,
+      familyIncome: parseInt(applicationData.familyIncome),
+      financialCondition: financialCondition,
       proofFile: proofFile
         ? {
             filename: proofFile.originalname,
@@ -162,6 +187,152 @@ app.get("/seat-applications", async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to fetch applications", error: error.message });
+  }
+});
+
+// 🔹 Approve/Reject Seat Application
+app.patch("/seat-applications/:id/approve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, approvalNotes, financialCondition } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid application ID" });
+    }
+
+    const updateData = {
+      status: approved ? "approved" : "rejected",
+      approvedAt: new Date(),
+      approvalNotes: approvalNotes || "",
+      financialCondition: financialCondition || "average",
+      timeline: {
+        status: approved ? "approved" : "rejected",
+        note: approvalNotes || (approved ? "Application approved" : "Application rejected"),
+        date: new Date(),
+      },
+    };
+
+    const result = await seatApplicationCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    res.status(200).json({
+      message: `Application ${approved ? "approved" : "rejected"} successfully`,
+      updatedApplication: updateData,
+    });
+  } catch (error) {
+    console.error("Error approving/rejecting application:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to update application", error: error.message });
+  }
+});
+
+// 🔹 Assign Student to Room
+app.patch("/seat-applications/:id/assign-room", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { roomId, studentInfo } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid application ID" });
+    }
+
+    // Get the application
+    const application = await seatApplicationCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    if (application.status !== "approved") {
+      return res
+        .status(400)
+        .json({ error: "Only approved applications can be assigned to rooms" });
+    }
+
+    // Get the room
+    const room = await roomsCollection.findOne({
+      _id: new ObjectId(roomId),
+    });
+
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if room has capacity
+    const occupiedSeats = room.occupants ? room.occupants.length : 0;
+    if (occupiedSeats >= room.capacity) {
+      return res.status(400).json({ error: "Room is at full capacity" });
+    }
+
+    // Add student to room occupants
+    const updatedOccupants = [...(room.occupants || [])];
+    updatedOccupants.push({
+      studentId: studentInfo.studentId || application._id.toString(),
+      name: studentInfo.name || application.name || "N/A",
+      email: studentInfo.email || application.email || "N/A",
+      assignedAt: new Date(),
+    });
+
+    await roomsCollection.updateOne(
+      { _id: new ObjectId(roomId) },
+      { $set: { occupants: updatedOccupants, updatedAt: new Date() } }
+    );
+
+    // Update the application with room assignment
+    await seatApplicationCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          assignedRoom: roomId,
+          assignedRoomDetails: {
+            roomNumber: room.number,
+            roomType: room.type,
+            block: room.block,
+            floor: room.floor,
+          },
+          assignedAt: new Date(),
+        },
+      }
+    );
+
+    res.status(200).json({
+      message: "Student assigned to room successfully",
+      roomAssignment: {
+        roomId,
+        roomNumber: room.number,
+        roomType: room.type,
+        block: room.block,
+        floor: room.floor,
+      },
+    });
+  } catch (error) {
+    console.error("Error assigning student to room:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to assign student to room", error: error.message });
+  }
+});
+
+// 🔹 Get Approved Applications (not yet assigned)
+app.get("/seat-applications/approved/pending-assignment", async (req, res) => {
+  try {
+    const applications = await seatApplicationCollection
+      .find({ status: "approved", assignedRoom: { $exists: false } })
+      .toArray();
+    res.status(200).json(applications);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch approved applications", error: error.message });
   }
 });
 

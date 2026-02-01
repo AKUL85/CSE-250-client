@@ -15,6 +15,8 @@ const applicationSchema = z.object({
   department: z.string().min(1, 'Your department is required'),
   cgpa: z.string().min(1, 'Your CGPA is required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid CGPA format (e.g., 3.50)'), // Basic validation
   semester: z.string().min(1, 'Your current semester is required').regex(/^\d+$/, 'Semester must be a number'),
+  familyIncome: z.string().min(1, 'Annual family income is required').regex(/^\d+$/, 'Family income must be a number'),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
   // -------------------------
   specialRequests: z.string().max(500, 'Special requests must be under 500 characters').optional().or(z.literal('')),
   proofFile: z.any().optional(), // For file
@@ -158,6 +160,41 @@ const ApplicationForm = ({ onSubmit }) => {
               {errors.semester && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.semester.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Annual Family Income (PKR) *
+              </label>
+              <input 
+                {...register('familyIncome')}
+                className='w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' 
+                placeholder='e.g., 500000' 
+                type="number" 
+              />
+              {errors.familyIncome && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.familyIncome.message}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Enter your annual family income to determine financial eligibility
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input 
+                {...register('email')}
+                className='w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all' 
+                placeholder='your.email@university.edu' 
+                type="email" 
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email.message}
                 </p>
               )}
             </div>
