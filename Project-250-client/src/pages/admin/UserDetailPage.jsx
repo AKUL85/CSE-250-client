@@ -10,7 +10,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
-const UserDetailPage = () => {
+const UserDetailPage = () => { 
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);

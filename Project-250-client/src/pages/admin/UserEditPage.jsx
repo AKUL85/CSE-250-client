@@ -12,7 +12,7 @@ const UserEditPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    name: '', 
     email: '',
     phone: '',
     studentId: '',
