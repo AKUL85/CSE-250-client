@@ -36,7 +36,7 @@ const SeatApplications = () => {
 
   const fetchRooms = async () => {
     try {
-      const res = await fetch("http://localhost:4000/rooms/all");
+      const res = await fetch("http://localhost:4000/api/rooms/all");
       const data = await res.json();
       setRooms(data);
     } catch (error) {
@@ -152,12 +152,12 @@ const SeatApplications = () => {
       sorted.sort((a, b) => parseFloat(a.cgpa || 0) - parseFloat(b.cgpa || 0));
     } else if (sortBy === "financial-high") {
       const financialOrder = { excellent: 3, average: 2, poor: 1 };
-      sorted.sort((a, b) => 
+      sorted.sort((a, b) =>
         (financialOrder[b.financialCondition] || 0) - (financialOrder[a.financialCondition] || 0)
       );
     } else if (sortBy === "financial-low") {
       const financialOrder = { excellent: 3, average: 2, poor: 1 };
-      sorted.sort((a, b) => 
+      sorted.sort((a, b) =>
         (financialOrder[a.financialCondition] || 0) - (financialOrder[b.financialCondition] || 0)
       );
     }
@@ -205,11 +205,10 @@ const SeatApplications = () => {
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
-              className={`px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition ${
-                selectedStatus === status
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
-              }`}
+              className={`px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition ${selectedStatus === status
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
+                }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
@@ -224,51 +223,46 @@ const SeatApplications = () => {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setSortBy("none")}
-              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                sortBy === "none"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
-              }`}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${sortBy === "none"
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
             >
               Default
             </button>
             <button
               onClick={() => setSortBy("cgpa-high")}
-              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                sortBy === "cgpa-high"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
-              }`}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${sortBy === "cgpa-high"
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
             >
               Result (High to Low)
             </button>
             <button
               onClick={() => setSortBy("cgpa-low")}
-              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                sortBy === "cgpa-low"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
-              }`}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${sortBy === "cgpa-low"
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
             >
               Result (Low to High)
             </button>
             <button
               onClick={() => setSortBy("financial-high")}
-              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                sortBy === "financial-high"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
-              }`}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${sortBy === "financial-high"
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
             >
               Financial Condition (Best First)
             </button>
             <button
               onClick={() => setSortBy("financial-low")}
-              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                sortBy === "financial-low"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
-              }`}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${sortBy === "financial-low"
+                ? "bg-blue-600 text-white"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
             >
               Financial Condition (Worst First)
             </button>
@@ -301,13 +295,12 @@ const SeatApplications = () => {
                       {app.name || "N/A"}
                     </h2>
                     <span
-                      className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                        app.status === "submitted"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : app.status === "approved"
+                      className={`px-3 py-1 text-xs rounded-full font-semibold ${app.status === "submitted"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : app.status === "approved"
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
-                      }`}
+                        }`}
                     >
                       {app.status.toUpperCase()}
                     </span>
@@ -319,9 +312,8 @@ const SeatApplications = () => {
                 </div>
                 <ChevronDown
                   size={20}
-                  className={`text-zinc-400 transition ${
-                    expandedId === app._id ? "rotate-180" : ""
-                  }`}
+                  className={`text-zinc-400 transition ${expandedId === app._id ? "rotate-180" : ""
+                    }`}
                 />
               </div>
 
@@ -351,11 +343,10 @@ const SeatApplications = () => {
                     </div>
                     <div>
                       <p className="text-sm text-zinc-500">Calculated Financial Status</p>
-                      <p className={`font-semibold px-2 py-1 rounded inline-block text-xs ${
-                        app.financialCondition === "excellent" ? "bg-green-100 text-green-700" :
+                      <p className={`font-semibold px-2 py-1 rounded inline-block text-xs ${app.financialCondition === "excellent" ? "bg-green-100 text-green-700" :
                         app.financialCondition === "average" ? "bg-yellow-100 text-yellow-700" :
-                        "bg-red-100 text-red-700"
-                      }`}>
+                          "bg-red-100 text-red-700"
+                        }`}>
                         {app.financialCondition?.toUpperCase() || "N/A"}
                       </p>
                     </div>
@@ -470,11 +461,10 @@ const SeatApplications = () => {
               <p className="text-sm text-zinc-600 mb-2">
                 <strong>Auto-Calculated Financial Condition:</strong>
               </p>
-              <p className={`text-sm font-bold px-3 py-2 rounded inline-block ${
-                applications.find(app => app._id === approvalModal)?.financialCondition === "excellent" ? "bg-green-100 text-green-700" :
+              <p className={`text-sm font-bold px-3 py-2 rounded inline-block ${applications.find(app => app._id === approvalModal)?.financialCondition === "excellent" ? "bg-green-100 text-green-700" :
                 applications.find(app => app._id === approvalModal)?.financialCondition === "average" ? "bg-yellow-100 text-yellow-700" :
-                "bg-red-100 text-red-700"
-              }`}>
+                  "bg-red-100 text-red-700"
+                }`}>
                 {applications.find(app => app._id === approvalModal)?.financialCondition?.toUpperCase() || "N/A"}
               </p>
               <p className="text-xs text-zinc-500 mt-2">
@@ -537,7 +527,7 @@ const SeatApplications = () => {
               <select
                 value={selectedRoom}
                 onChange={(e) => setSelectedRoom(e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 bg-white"
               >
                 <option value="">Choose a room...</option>
                 {getAvailableRooms().map((room) => {
