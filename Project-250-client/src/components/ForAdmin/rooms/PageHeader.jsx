@@ -74,7 +74,7 @@ const PageHeader = ({ onAddRoom }) => {
       </div>
 
       {showForm && (
-        <div className="mt-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="mt-6 bg-white text-gray-900 p-6 rounded-xl shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Add New Room
           </h3>
