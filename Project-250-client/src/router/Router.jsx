@@ -11,6 +11,8 @@ import ComplaintDetailsPage from "../pages/complains/ComplaintDetailsPage";
 import LaundryPage from "../pages/LaundryPage";
 import RoomsPage from "../pages/roomPage/RoomsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import UserDetailPage from "../pages/admin/UserDetailPage";
+import UserEditPage from "../pages/admin/UserEditPage";
 import AdminRoomsPage from "../pages/admin/AdminRoomsPage";
 import ProtectedRoute from "../pages/auth/ProtectedRoute";
 import RegisterStudentPage from "../components/ForAdmin/StudentsReg/RegisterStudentPage";
@@ -48,6 +50,8 @@ export const router = createBrowserRouter([
       { path: "laundry", element: <LaundryPage /> },
       { path: "rooms", element: <RoomsPage /> },
       { path: "admin/users", element: <AdminUsersPage /> },
+      { path: "admin/users/:id", element: <UserDetailPage /> },
+      { path: "admin/users/edit/:id", element: <UserEditPage /> },
       { path: "admin/rooms", element: <AdminRoomsPage /> },
       {
         path: "/admin/register-student",

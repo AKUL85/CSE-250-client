@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Users, Eye, Edit3, Trash2 } from "lucide-react";
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
@@ -78,18 +79,18 @@ const UserTable = ({ users, handleDeleteUser, getRoleColor, getStatusColor }) =>
                   {/* Actions */}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
-                      <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      <Link 
+                        to={`/admin/users/${user._id}`}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block"
                       >
                         <Eye className="w-4 h-4" />
-                      </motion.button>
-                      <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      </Link>
+                      <Link 
+                        to={`/admin/users/edit/${user._id}`}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors inline-block"
                       >
                         <Edit3 className="w-4 h-4" />
-                      </motion.button>
+                      </Link>
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handleDeleteUser(user)}
