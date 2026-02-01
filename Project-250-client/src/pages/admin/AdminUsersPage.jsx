@@ -49,7 +49,7 @@ const navigate=useNavigate();
   });
 
   const handleDeleteUser = async (user) => {
-  const result = await Swal.fire({
+  const result = await Swal.fire({ 
     title: "Delete User",
     text: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
     icon: "warning",
