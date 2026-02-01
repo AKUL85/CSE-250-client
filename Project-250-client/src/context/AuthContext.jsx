@@ -24,6 +24,7 @@ function AuthProvider({ children }) {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
         const userData = await fetchUserData(payload.id);
         setUser({ ...userData, displayName: userData.name, role: payload.role });
+        setLoading(false);
         return { success: true };
       } else {
         throw new Error(data.Message || 'Login failed');
@@ -74,23 +75,26 @@ function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        // Check if token is expired
-        if (payload.exp * 1000 > Date.now()) {
-          fetchUserData(payload.id).then(userData => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          // Check if token is expired
+          if (payload.exp * 1000 > Date.now()) {
+            const userData = await fetchUserData(payload.id);
             setUser({ ...userData, displayName: userData.name, role: payload.role });
-          });
-        } else {
+          } else {
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
           localStorage.removeItem('token');
         }
-      } catch (error) {
-        localStorage.removeItem('token');
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const authInfo = {
