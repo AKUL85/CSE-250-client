@@ -4,7 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const multer = require("multer");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const generateToken = require("./generateToken");const bcrypt = require('bcrypt');
+const generateToken = require("./generateToken"); const bcrypt = require('bcrypt');
 const {
   router: complainRouter,
   setComplainCollections,
@@ -17,6 +17,7 @@ const {
   router: foodManagerRouter,
   setFoodManagerCollections,
 } = require("./foodmanager");
+const { router: statsRouter, setStatsCollections } = require("./stats");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -41,6 +42,7 @@ let roomsCollection;
 let laundryCollection;
 let menuCollection;
 let ordersCollection;
+let monthlyCostsCollection;
 
 async function connectDB() {
   try {
@@ -56,6 +58,7 @@ async function connectDB() {
     const laundryMachinesCollection = db.collection("laundryMachines");
     menuCollection = db.collection("menu");
     ordersCollection = db.collection("orders");
+    monthlyCostsCollection = db.collection("monthlyCosts");
 
     // Attach collection setters
     setComplainCollections({ complainCollection });
@@ -63,7 +66,9 @@ async function connectDB() {
     setRoomsCollection({ roomsCollection });
     setMenuCollection({ menuCollection });
     setOrdersCollection({ ordersCollection, menuCollection });
+    setOrdersCollection({ ordersCollection, menuCollection });
     setFoodManagerCollections({ menuCollection, ordersCollection });
+    setStatsCollections({ usersCollection, roomsCollection, ordersCollection, complainCollection, monthlyCostsCollection });
 
     // Register routes
 
@@ -97,6 +102,7 @@ const calculateFinancialCondition = (familyIncomeStr) => {
   }
 };
 app.use("/api/food", foodManagerRouter);
+app.use("/api", statsRouter);
 
 // 🔹 Multer Configuration for Seat Application
 const storage = multer.memoryStorage();
@@ -148,11 +154,11 @@ app.post("/seat-application", upload.single("proofFile"), async (req, res) => {
       financialCondition: financialCondition,
       proofFile: proofFile
         ? {
-            filename: proofFile.originalname,
-            mimetype: proofFile.mimetype,
-            size: proofFile.size,
-            uploadStatus: "received",
-          }
+          filename: proofFile.originalname,
+          mimetype: proofFile.mimetype,
+          size: proofFile.size,
+          uploadStatus: "received",
+        }
         : null,
       status: "submitted",
       createdAt: new Date(),

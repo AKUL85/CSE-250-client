@@ -1,46 +1,162 @@
+
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Swal from 'sweetalert2';
+
 import {
-  CreditCard, AlertTriangle, ShoppingCart, Clock,
-  Thermometer, Users, TrendingUp, FileText, Wrench,
-  DollarSign
+  AlertTriangle,
+  ShoppingCart,
+  Clock,
+  Thermometer,
+  Users,
+  TrendingUp,
+  FileText,
+  Wrench,
+  DollarSign,
+  CreditCard,
+  RefreshCw,
+  PlusCircle
 } from 'lucide-react';
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Tooltip
+} from 'recharts';
+
+import dayjs from 'dayjs';
+
 import { mockDashboardKPIs } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
+
 import Card from '../components/ui/Card';
 import StatTile from '../components/ui/StatTile';
 import Badge from '../components/ui/Badge';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import dayjs from 'dayjs';
-import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+
 import FoodManagerDashboard from './food/FoodManagerDashboard';
 import LaundryManagerDashboard from './admin/LaundryManagerDashboard';
 
-const revenueData = [
-  { month: 'Jan', revenue: 45000 },
-  { month: 'Feb', revenue: 52000 },
-  { month: 'Mar', revenue: 48000 },
-  { month: 'Apr', revenue: 61000 },
-  { month: 'May', revenue: 55000 },
-  { month: 'Jun', revenue: 67000 },
-];
-
-const occupancyData = [
-  { day: 'Mon', occupancy: 85 },
-  { day: 'Tue', occupancy: 88 },
-  { day: 'Wed', occupancy: 82 },
-  { day: 'Thu', occupancy: 90 },
-  { day: 'Fri', occupancy: 85 },
-  { day: 'Sat', occupancy: 78 },
-  { day: 'Sun', occupancy: 80 },
-];
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  // const isStudent = user?.role === 'student';
-  // console.log(user);  // use it to debug student
+
+  // State for Admin Dashboard
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    occupancyRate: 0,
+    monthlyRevenue: 0, // This now represents Monthly Cost
+    activeComplaints: 0
+  });
+  const [revenueData, setRevenueData] = useState([]); // This now holds Cost Data
+  const [occupancyData, setOccupancyData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // State for Add Cost Form
+  const [showCostForm, setShowCostForm] = useState(false);
+  const [costForm, setCostForm] = useState({
+    month: dayjs().format('MMM'),
+    year: new Date().getFullYear(),
+    cost: ''
+  });
 
   const kpis = user.role === "student" ? mockDashboardKPIs.student : mockDashboardKPIs.admin;
+
+  useEffect(() => {
+    if (user.role === 'admin') {
+      fetchData();
+      fetchRevenueData(selectedYear);
+      fetchOccupancyData();
+    }
+  }, [user.role]);
+
+  // Effect to refetch revenue (cost) when year changes
+  useEffect(() => {
+    if (user.role === 'admin') {
+      fetchRevenueData(selectedYear);
+    }
+  }, [selectedYear]);
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/stats/dashboard");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRevenueData = async (year) => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/stats/cost-history?year=${year}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRevenueData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch cost history", error);
+    }
+  };
+
+  const fetchOccupancyData = async () => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/stats/occupancy-history`);
+      if (res.ok) {
+        const data = await res.json();
+        setOccupancyData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch occupancy history", error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchData(), fetchRevenueData(selectedYear), fetchOccupancyData()]);
+    setIsRefreshing(false);
+  };
+
+  const handleCostSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:4000/api/stats/monthly-cost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(costForm)
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Cost Updated',
+          text: `Monthly cost for ${costForm.month} ${costForm.year} updated successfully!`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+        setShowCostForm(false);
+        setCostForm({ ...costForm, cost: '' }); // Reset cost but keep month/year
+        fetchData(); // Update KPI
+        fetchRevenueData(selectedYear); // Update Chart
+      } else {
+        throw new Error('Failed to update cost');
+      }
+    } catch (error) {
+      Swal.fire('Error', 'Failed to update monthly cost', 'error');
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,6 +182,7 @@ const DashboardPage = () => {
   }
 
   if (user.role === "student") {
+    // Keep Student Dashboard essentially as is (using mock kpis for now or refactor later)
     return (
       <motion.div
         variants={containerVariants}
@@ -250,23 +367,34 @@ const DashboardPage = () => {
       </motion.div>
     );
   }
+
   // Admin Dashboard
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 bg-zinc-100 p-6 rounded-3xl" // Overall background color for a clean look
+      className="space-y-6 bg-zinc-100 p-6 rounded-3xl"
     >
       {/* Welcome Section */}
       <motion.div variants={itemVariants}>
-        <div className="rounded-2xl p-8 text-white shadow-lg bg-gradient-to-br from-blue-400 to-indigo-400"> {/* Eye-catching gradient */}
-          <h1 className="text-3xl font-bold mb-2 drop-shadow-sm">
-            Admin Dashboard 👨‍💼
-          </h1>
-          <p className="text-white/90">
-            Monitor and manage your residential hall operations from here.
-          </p>
+        <div className="flex flex-col md:flex-row justify-between items-center rounded-2xl p-8 text-white shadow-lg bg-gradient-to-br from-blue-400 to-indigo-400 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 drop-shadow-sm">
+              Admin Dashboard 👨‍💼
+            </h1>
+            <p className="text-white/90">
+              Monitor and manage your residential hall operations from here.
+            </p>
+          </div>
+
+          <button
+            onClick={handleRefresh}
+            className={`flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-lg hover:bg-white/30 transition-all ${isRefreshing ? 'animate-pulse' : ''}`}
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</span>
+          </button>
         </div>
       </motion.div>
 
@@ -277,35 +405,34 @@ const DashboardPage = () => {
       >
         <StatTile
           title="Total Students"
-          value={kpis.totalStudents}
+          value={loading ? '...' : stats.totalStudents}
           icon={Users}
           color="primary"
-          trend="up"
-          trendValue="12 new"
+        // trend="up" // Dynamic trend could be added later
+        // trendValue="12 new"
         />
         <StatTile
           title="Occupancy Rate"
-          value={`${kpis.occupancyRate}%`}
+          value={loading ? '...' : `${stats.occupancyRate}%`}
           icon={TrendingUp}
           color="secondary"
-          trend="up"
-          trendValue="2.3%"
+        // trend="up"
+        // trendValue="2.3%"
         />
         <StatTile
-          title="Monthly Cost"
-          value={`$${kpis.monthlyRevenue.toLocaleString()}`}
+          title="Monthly Cost" // Updated Title
+          value={loading ? '...' : `৳${stats.monthlyRevenue.toLocaleString()}`} // Using same field name from backend
           icon={DollarSign}
           color="accent"
-          trend="up"
-          trendValue="8.1%"
+        // trend="up"
+        // trendValue="8.1%"
         />
         <StatTile
           title="Active Complaints"
-          value={kpis.activeComplaints}
+          value={loading ? '...' : stats.activeComplaints}
           icon={AlertTriangle}
-          color={kpis.activeComplaints > 5 ? "warning" : "success"}
-          trend="down"
-          trendValue="3 resolved"
+          color={stats.activeComplaints > 5 ? "warning" : "success"}
+        // trend="down"
         />
       </motion.div>
 
@@ -313,39 +440,149 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants}>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-900">Monthly Cost</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" className="text-zinc-300" />
-                <XAxis dataKey="month" className="text-sm text-zinc-600" />
-                <YAxis className="text-sm text-zinc-600" />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#2563EB" // A clean blue
-                  strokeWidth={3}
-                  dot={{ fill: '#2563EB', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+              <h3 className="text-lg font-semibold text-zinc-900">Monthly Operational Cost</h3>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCostForm(!showCostForm)}
+                  className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition"
+                >
+                  <PlusCircle className="w-4 h-4" /> Add Cost
+                </button>
+
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="p-1 border rounded-md text-sm text-zinc-900 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {[2023, 2024, 2025, 2026].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Add Cost Form Inline */}
+            {showCostForm && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200"
+              >
+                <form onSubmit={handleCostSubmit} className="flex flex-col gap-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 block mb-1">Month</label>
+                      <select
+                        required
+                        value={costForm.month}
+                        onChange={(e) => setCostForm({ ...costForm, month: e.target.value })}
+                        className="w-full text-zinc-900 p-2 border rounded-md text-sm bg-white"
+                      >
+                        {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 block mb-1">Year</label>
+                      <input
+                        type="number"
+                        required
+                        value={costForm.year}
+                        onChange={(e) => setCostForm({ ...costForm, year: parseInt(e.target.value) })}
+                        className="w-full text-zinc-900 p-2 border rounded-md text-sm bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 block mb-1">Amount (৳)</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="0.00"
+                        value={costForm.cost}
+                        onChange={(e) => setCostForm({ ...costForm, cost: e.target.value })}
+                        className="w-full text-zinc-900 p-2 border rounded-md text-sm bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCostForm(false)}
+                      className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700"
+                    >
+                      Save Cost
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+
+            <div className="h-[300px] w-full">
+              {revenueData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" className="text-zinc-300" />
+                    <XAxis dataKey="month" className="text-sm text-zinc-600" />
+                    <YAxis className="text-sm text-zinc-600" />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                      formatter={(value) => [`৳${value}`, 'Cost']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#EF4444" // Red for Cost
+                      strokeWidth={3}
+                      dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-400">
+                  No cost data for selected year
+                </div>
+              )}
+            </div>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 text-zinc-900">Weekly Occupancy</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={occupancyData}>
-                <CartesianGrid strokeDasharray="3 3" className="text-zinc-300" />
-                <XAxis dataKey="day" className="text-sm text-zinc-600" />
-                <YAxis className="text-sm text-zinc-600" />
-                <Bar
-                  dataKey="occupancy"
-                  fill="#00C2A8" // A vibrant teal
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-900">Yearly Occupancy (Students)</h3>
+            <div className="h-[300px] w-full">
+              {occupancyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={occupancyData}>
+                    <CartesianGrid strokeDasharray="3 3" className="text-zinc-300" />
+                    <XAxis dataKey="year" className="text-sm text-zinc-600" />
+                    <YAxis className="text-sm text-zinc-600" />
+                    <Tooltip
+                      cursor={{ fill: 'transparent' }}
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                    />
+                    <Bar
+                      dataKey="occupancy"
+                      fill="#00C2A8"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-400">
+                  No occupancy history found
+                </div>
+              )}
+            </div>
           </Card>
         </motion.div>
       </div>
@@ -358,7 +595,7 @@ const DashboardPage = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-zinc-600">Seat Applications</span>
-                <Badge variant="warning">{kpis.pendingApplications}</Badge>
+                <Badge variant="warning">{loading ? '...' : (kpis.pendingApplications || 0)}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-zinc-600">Room Changes</span>
