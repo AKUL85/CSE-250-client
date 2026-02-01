@@ -25,7 +25,7 @@ const RoomFilters = ({
             placeholder="Search rooms..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
           />
         </div>
 
@@ -33,7 +33,7 @@ const RoomFilters = ({
         <select
           value={selectedBlock}
           onChange={(e) => setSelectedBlock(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
         >
           {blocks.map(block => (
             <option key={block} value={block}>
@@ -46,7 +46,7 @@ const RoomFilters = ({
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
         >
           {statuses.map(status => (
             <option key={status} value={status}>
