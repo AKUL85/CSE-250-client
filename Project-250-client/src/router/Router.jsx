@@ -30,6 +30,10 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/seat/apply",
+    element: <SeatApplicationPage />,
+  },
+  {
     path: "/",
     element: (
       <ProtectedRoute>
@@ -44,7 +48,6 @@ export const router = createBrowserRouter([
       { path: "profile", element: <ProfilePage2 /> },
       { path: "food/menu", element: <FoodMenuPage /> },
       { path: "food/orders", element: <FoodOrdersPage /> },
-      { path: "seat/apply", element: <SeatApplicationPage /> },
       { path: "complaints", element: <ComplainPage /> },
       { path: "complaints/:_id", element: <ComplaintDetailsPage /> },
       { path: "laundry", element: <LaundryPage /> },

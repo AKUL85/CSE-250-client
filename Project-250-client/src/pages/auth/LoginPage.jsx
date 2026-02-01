@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Swal from 'sweetalert2';
 import { FaSignInAlt } from "react-icons/fa";
-import {  Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, FileText } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
 
@@ -24,7 +24,7 @@ const LoginPage = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
 
- 
+
 
   // Form hook
   const {
@@ -33,9 +33,9 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
-    
+
   });
-   // Redirect if already logged in
+  // Redirect if already logged in
   if (user) {
     return <Navigate to={from} replace />;
   }
@@ -137,7 +137,7 @@ const LoginPage = () => {
               variants={itemVariants}
               className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mb-4 shadow-md"
             >
-              
+
               <FaSignInAlt className="w-8 h-8 text-white" />
             </motion.div>
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -148,7 +148,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          
+
           {/* Login form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
@@ -224,6 +224,29 @@ const LoginPage = () => {
               {isLoading ? <LoadingSpinner size="small" /> : null}
               {isLoading ? 'Signing in...' : 'Sign in'}
             </motion.button>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or, Are you a new student?</span>
+              </div>
+            </div>
+
+            <div className="w-full p-[1.5px] rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:shadow-lg hover:shadow-purple-500/30 transition">
+              <Link
+                to="/seat/apply"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium
+               bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200
+               hover:bg-gray-50 dark:hover:bg-gray-900
+               transition-all duration-300"
+              >
+                <FileText className="w-5 h-5 text-indigo-500" />
+                <span>Apply for a New Seat</span>
+              </Link>
+            </div>
+
           </form>
         </motion.div>
       </div>
